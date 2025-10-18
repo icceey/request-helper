@@ -89,6 +89,41 @@ export class StorageManager {
   }
 
   /**
+   * 更新已有请求
+   */
+  static async updateRequest(requestData) {
+    try {
+      const requests = await this.getRequests();
+      const index = requests.findIndex(req => req.id === requestData.id);
+      
+      if (index !== -1) {
+        requests[index] = requestData;
+        await chrome.storage.local.set({
+          [this.STORAGE_KEY]: requests
+        });
+        console.log('Request updated:', requestData.id);
+      } else {
+        console.warn('Request not found for update:', requestData.id);
+      }
+    } catch (error) {
+      console.error('Failed to update request:', error);
+    }
+  }
+
+  /**
+   * 获取最近的请求
+   */
+  static async getRecentRequests(count = 10) {
+    try {
+      const requests = await this.getRequests();
+      return requests.slice(0, count);
+    } catch (error) {
+      console.error('Failed to get recent requests:', error);
+      return [];
+    }
+  }
+
+  /**
    * 获取请求统计信息
    */
   static async getStats() {

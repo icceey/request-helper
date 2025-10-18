@@ -13,6 +13,7 @@ const DIST_DIR = path.join(ROOT_DIR, 'dist');
 const FILES_TO_COPY = [
   'manifest.json',
   'background',
+  'content',
   'popup',
   'options',
   'utils',

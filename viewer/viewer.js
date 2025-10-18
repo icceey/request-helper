@@ -14,6 +14,30 @@ const methodFilter = document.getElementById('method-filter');
 const exportBtn = document.getElementById('export-btn');
 const clearBtn = document.getElementById('clear-btn');
 
+// 显示 Toast 提示
+function showToast(message, type = 'success') {
+  // 移除已存在的 toast
+  const existingToast = document.querySelector('.toast');
+  if (existingToast) {
+    existingToast.remove();
+  }
+
+  // 创建新 toast
+  const toast = document.createElement('div');
+  toast.className = `toast ${type}`;
+  toast.textContent = message;
+  document.body.appendChild(toast);
+
+  // 显示 toast
+  setTimeout(() => toast.classList.add('show'), 10);
+
+  // 3秒后自动隐藏
+  setTimeout(() => {
+    toast.classList.remove('show');
+    setTimeout(() => toast.remove(), 300);
+  }, 3000);
+}
+
 // 初始化
 async function init() {
   console.log('Viewer initialized');
@@ -152,6 +176,11 @@ function renderRequestDetails(request) {
           <span class="detail-label">缓存:</span>
           <span class="detail-value">来自缓存</span>
         ` : ''}
+        
+        ${request.source ? `
+          <span class="detail-label">数据源:</span>
+          <span class="detail-value">${request.source}</span>
+        ` : ''}
       </div>
     </div>
 
@@ -160,6 +189,13 @@ function renderRequestDetails(request) {
     ${request.requestBody ? renderRequestBody(request.requestBody) : ''}
     
     ${renderHeaders('响应头', request.responseHeaders)}
+    
+    ${request.responseBody ? renderResponseBody(request.responseBody, request.contentType) : `
+      <div class="detail-section">
+        <h3>响应体</h3>
+        <p class="empty-notice">未捕获到响应体数据（webRequest API 无法获取响应体，仅能捕获页面发起的 XHR/Fetch 请求的响应体）</p>
+      </div>
+    `}
     
     ${request.error ? `
       <div class="detail-section">
@@ -204,7 +240,29 @@ function renderRequestBody(requestBody) {
   if (requestBody.formData) {
     bodyHtml = '<pre>' + JSON.stringify(requestBody.formData, null, 2) + '</pre>';
   } else if (requestBody.raw) {
-    bodyHtml = '<pre>Raw data (binary)</pre>';
+    // 尝试显示解码后的内容
+    const rawItems = Array.isArray(requestBody.raw) ? requestBody.raw : [requestBody.raw];
+    const processedItems = rawItems.map(item => {
+      // 如果有JSON格式，优先显示JSON
+      if (item.json) {
+        return JSON.stringify(item.json, null, 2);
+      }
+      // 否则显示文本
+      if (item.text) {
+        return item.text;
+      }
+      // 如果都没有，显示字节信息
+      if (item.bytes) {
+        return `Raw data (${item.bytes.length} bytes)`;
+      }
+      return 'Raw data (binary)';
+    });
+    
+    bodyHtml = '<pre>' + escapeHtml(processedItems.join('\n\n')) + '</pre>';
+  } else if (typeof requestBody === 'string') {
+    bodyHtml = '<pre>' + escapeHtml(requestBody) + '</pre>';
+  } else if (typeof requestBody === 'object') {
+    bodyHtml = '<pre>' + JSON.stringify(requestBody, null, 2) + '</pre>';
   }
 
   return `
@@ -215,6 +273,99 @@ function renderRequestBody(requestBody) {
   `;
 }
 
+// 渲染响应体
+function renderResponseBody(responseBody, contentType) {
+  let bodyHtml = '';
+  let tabs = '';
+  
+  // 判断响应体类型
+  if (!responseBody) {
+    return '';
+  }
+
+  // 如果响应体有类型信息（来自 content script）
+  if (responseBody.type) {
+    switch (responseBody.type) {
+      case 'json':
+        bodyHtml = `<pre class="json-body">${JSON.stringify(responseBody.data, null, 2)}</pre>`;
+        tabs = `
+          <div class="tabs">
+            <button class="tab active" data-tab="formatted">格式化</button>
+            <button class="tab" data-tab="raw">原始</button>
+          </div>
+          <div class="tab-content">
+            <div class="tab-pane active" data-pane="formatted">
+              <pre class="json-body">${JSON.stringify(responseBody.data, null, 2)}</pre>
+            </div>
+            <div class="tab-pane" data-pane="raw">
+              <pre>${escapeHtml(JSON.stringify(responseBody.data))}</pre>
+            </div>
+          </div>
+        `;
+        break;
+      
+      case 'html':
+      case 'xml':
+      case 'text':
+        bodyHtml = `<pre class="text-body">${escapeHtml(String(responseBody.data).substring(0, 50000))}</pre>`;
+        if (String(responseBody.data).length > 50000) {
+          bodyHtml += '<p class="truncated-notice">内容过长，已截断显示前50000个字符</p>';
+        }
+        break;
+      
+      case 'raw':
+        bodyHtml = `<pre>${escapeHtml(String(responseBody.data).substring(0, 10000))}</pre>`;
+        if (String(responseBody.data).length > 10000) {
+          bodyHtml += '<p class="truncated-notice">内容过长，已截断</p>';
+        }
+        break;
+    }
+
+    if (responseBody.parseError) {
+      bodyHtml += `<p class="error-notice">解析错误: ${escapeHtml(responseBody.parseError)}</p>`;
+    }
+  } else {
+    // 旧格式的响应体
+    if (typeof responseBody === 'string') {
+      bodyHtml = '<pre>' + escapeHtml(responseBody.substring(0, 10000)) + '</pre>';
+    } else if (typeof responseBody === 'object') {
+      bodyHtml = '<pre>' + JSON.stringify(responseBody, null, 2) + '</pre>';
+    }
+  }
+
+  const result = `
+    <div class="detail-section">
+      <h3>响应体 ${contentType ? `<span class="content-type">(${contentType})</span>` : ''}</h3>
+      ${tabs || bodyHtml}
+    </div>
+  `;
+
+  // 绑定标签切换事件
+  setTimeout(() => {
+    document.querySelectorAll('.tab').forEach(tab => {
+      tab.addEventListener('click', (e) => {
+        const tabName = e.target.dataset.tab;
+        const section = e.target.closest('.detail-section');
+        
+        section.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+        section.querySelectorAll('.tab-pane').forEach(p => p.classList.remove('active'));
+        
+        e.target.classList.add('active');
+        section.querySelector(`[data-pane="${tabName}"]`).classList.add('active');
+      });
+    });
+  }, 0);
+
+  return result;
+}
+
+// HTML转义
+function escapeHtml(text) {
+  const div = document.createElement('div');
+  div.textContent = text;
+  return div.innerHTML;
+}
+
 // 导出数据
 async function handleExport() {
   try {
@@ -222,19 +373,16 @@ async function handleExport() {
     
     if (response.success && response.data) {
       downloadJSON(response.data, 'requests-export.json');
+      showToast('导出成功', 'success');
     }
   } catch (error) {
     console.error('Failed to export:', error);
-    alert('导出失败');
+    showToast('导出失败', 'error');
   }
 }
 
 // 清空数据
 async function handleClear() {
-  if (!confirm('确定要清空所有捕获的数据吗？')) {
-    return;
-  }
-
   try {
     const response = await chrome.runtime.sendMessage({ type: 'CLEAR_REQUESTS' });
     
@@ -248,10 +396,11 @@ async function handleClear() {
           <p>选择一个请求查看详情</p>
         </div>
       `;
+      showToast('数据已清空', 'success');
     }
   } catch (error) {
     console.error('Failed to clear:', error);
-    alert('清空失败');
+    showToast('清空失败', 'error');
   }
 }
 

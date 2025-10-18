@@ -226,10 +226,43 @@ export class RequestCapture {
 
     // raw data (需要解码)
     if (requestBody.raw) {
-      result.raw = requestBody.raw.map(item => ({
-        bytes: item.bytes ? Array.from(new Uint8Array(item.bytes)) : null,
-        file: item.file
-      }));
+      result.raw = requestBody.raw.map(item => {
+        const rawItem = {
+          bytes: item.bytes ? Array.from(new Uint8Array(item.bytes)) : null,
+          file: item.file
+        };
+        
+        // 尝试将字节数组解码为文本
+        if (item.bytes) {
+          try {
+            // item.bytes 可能是 ArrayBuffer 或者已经是数组
+            let uint8Array;
+            if (item.bytes instanceof ArrayBuffer) {
+              uint8Array = new Uint8Array(item.bytes);
+            } else if (Array.isArray(item.bytes)) {
+              uint8Array = new Uint8Array(item.bytes);
+            } else {
+              uint8Array = new Uint8Array(item.bytes);
+            }
+            
+            const decoder = new TextDecoder('utf-8');
+            const text = decoder.decode(uint8Array);
+            rawItem.text = text;
+            
+            // 尝试解析为JSON
+            try {
+              rawItem.json = JSON.parse(text);
+            } catch (e) {
+              // 不是JSON，保留文本格式
+            }
+          } catch (e) {
+            // 解码失败，保留字节数组
+            console.warn('Failed to decode request body:', e);
+          }
+        }
+        
+        return rawItem;
+      });
     }
 
     return result;
@@ -253,18 +286,124 @@ export class RequestCapture {
   /**
    * 获取响应体
    * 注意：webRequest API无法直接获取响应体
-   * 这里我们使用fetch API重新请求来获取响应体（仅用于开发调试）
+   * 响应体通过 content script 拦截器捕获
    */
   static async fetchResponseBody(requestData) {
-    // 对于某些请求类型，我们可能无法重新获取响应体
-    // 这是一个已知限制，后续可以通过content script注入来解决
-    
-    // 暂时只记录响应体大小
+    // 记录响应体大小
     const contentLength = requestData.responseHeaders?.['content-length'];
     if (contentLength) {
       requestData.responseBodySize = parseInt(contentLength, 10);
     }
 
-    // TODO: 实现通过content script获取响应体的方案
+    // 响应体将通过 content script 异步捕获并通过 handleResponseBody 方法处理
+  }
+
+  /**
+   * 处理从 content script 捕获的响应体
+   */
+  static async handleResponseBody(capturedData) {
+    if (!this.isCapturing) {
+      return;
+    }
+
+    // 检查是否应该捕获此请求
+    if (!this.shouldCapture(capturedData.url)) {
+      return;
+    }
+
+    // 尝试匹配已有的请求（通过URL和时间戳）
+    const existingRequest = await this.findMatchingRequest(capturedData);
+
+    if (existingRequest) {
+      // 更新已有请求的响应体
+      existingRequest.responseBody = capturedData.responseBody;
+      existingRequest.contentType = capturedData.contentType;
+      if (capturedData.responseHeaders) {
+        existingRequest.responseHeaders = {
+          ...existingRequest.responseHeaders,
+          ...this.parseContentScriptHeaders(capturedData.responseHeaders)
+        };
+      }
+      await StorageManager.updateRequest(existingRequest);
+      
+      // 通知 viewer 更新
+      chrome.runtime.sendMessage({ type: 'REQUESTS_UPDATED' }).catch(() => {});
+    } else {
+      // 创建新的请求记录（来自 content script）
+      const requestData = {
+        id: capturedData.id,
+        url: capturedData.url,
+        method: capturedData.method,
+        type: capturedData.type,
+        timestamp: capturedData.timestamp,
+        requestHeaders: capturedData.requestHeaders,
+        requestBody: capturedData.requestBody,
+        statusCode: capturedData.statusCode,
+        statusText: capturedData.statusText,
+        responseHeaders: this.parseContentScriptHeaders(capturedData.responseHeaders),
+        responseBody: capturedData.responseBody,
+        contentType: capturedData.contentType,
+        duration: capturedData.duration,
+        completed: true,
+        source: 'content-script'
+      };
+
+      await StorageManager.saveRequest(requestData);
+      
+      // 通知 viewer 更新
+      chrome.runtime.sendMessage({ type: 'REQUESTS_UPDATED' }).catch(() => {});
+    }
+  }
+
+  /**
+   * 查找匹配的请求
+   */
+  static async findMatchingRequest(capturedData) {
+    // 尝试在 pendingRequests 中查找
+    for (const [requestId, requestData] of this.pendingRequests.entries()) {
+      if (requestData.url === capturedData.url && 
+          requestData.method === capturedData.method &&
+          Math.abs(requestData.timestamp - capturedData.timestamp) < 5000) { // 5秒内
+        return requestData;
+      }
+    }
+
+    // 如果找不到，尝试从存储中查找最近的请求
+    const recentRequests = await StorageManager.getRecentRequests(10);
+    for (const request of recentRequests) {
+      if (request.url === capturedData.url && 
+          request.method === capturedData.method &&
+          Math.abs(request.timestamp - capturedData.timestamp) < 5000) {
+        return request;
+      }
+    }
+
+    return null;
+  }
+
+  /**
+   * 解析 content script 的响应头
+   */
+  static parseContentScriptHeaders(headers) {
+    if (!headers) return {};
+
+    // 如果已经是对象格式，直接返回
+    if (typeof headers === 'object' && !Array.isArray(headers)) {
+      return headers;
+    }
+
+    // 如果是字符串格式（XMLHttpRequest.getAllResponseHeaders()返回的格式）
+    if (typeof headers === 'string') {
+      const parsed = {};
+      headers.split('\r\n').forEach(line => {
+        const parts = line.split(': ');
+        if (parts.length === 2) {
+          parsed[parts[0].toLowerCase()] = parts[1];
+        }
+      });
+      return parsed;
+    }
+
+    return headers;
   }
 }

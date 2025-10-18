@@ -3,343 +3,275 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>RequestHelper 测试页面</title>
+  <title>RequestHelper Test Page</title>
   <style>
     body {
-      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-      max-width: 800px;
+      font-family: Arial, sans-serif;
+      max-width: 1000px;
       margin: 50px auto;
       padding: 20px;
       background: #f5f5f5;
     }
-    .container {
-      background: white;
-      padding: 30px;
-      border-radius: 8px;
-      box-shadow: 0 2px 10px rgba(0,0,0,0.1);
-    }
     h1 {
       color: #1a73e8;
-      margin-bottom: 10px;
-    }
-    .subtitle {
-      color: #666;
-      margin-bottom: 30px;
+      text-align: center;
     }
     .test-section {
-      margin-bottom: 30px;
+      margin-bottom: 20px;
       padding: 20px;
-      background: #f8f9fa;
-      border-radius: 4px;
+      background: white;
+      border-radius: 8px;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.1);
     }
-    .test-section h2 {
+    h2 {
+      margin-top: 0;
       color: #333;
-      font-size: 18px;
-      margin-bottom: 15px;
     }
     button {
       padding: 10px 20px;
       margin: 5px;
+      cursor: pointer;
       background: #1a73e8;
       color: white;
       border: none;
       border-radius: 4px;
-      cursor: pointer;
       font-size: 14px;
     }
     button:hover {
       background: #1557b0;
     }
-    .log {
-      margin-top: 15px;
+    button:disabled {
+      background: #ccc;
+      cursor: not-allowed;
+    }
+    .result {
+      margin-top: 10px;
       padding: 10px;
-      background: white;
-      border: 1px solid #e0e0e0;
+      background: #f8f9fa;
       border-radius: 4px;
-      font-family: 'Consolas', monospace;
+      max-height: 300px;
+      overflow: auto;
+      font-family: monospace;
       font-size: 12px;
-      max-height: 200px;
-      overflow-y: auto;
+      white-space: pre-wrap;
+      word-break: break-all;
     }
-    .log-item {
-      padding: 5px;
-      border-bottom: 1px solid #f0f0f0;
+    .result.error {
+      background: #fef0ef;
+      color: #d93025;
     }
-    .success {
-      color: #34a853;
+    .result.success {
+      background: #e6f4ea;
+      color: #137333;
     }
-    .error {
-      color: #ea4335;
+    .description {
+      color: #666;
+      font-size: 14px;
+      margin-bottom: 10px;
     }
-    .info {
-      color: #4285f4;
+    .tip {
+      background: #fff3cd;
+      color: #856404;
+      padding: 10px;
+      border-radius: 4px;
+      margin-bottom: 20px;
     }
   </style>
 </head>
 <body>
-  <div class="container">
-    <h1>🧪 RequestHelper 测试页面</h1>
-    <p class="subtitle">使用这个页面测试RequestHelper插件的捕获功能</p>
+  <h1>🔍 RequestHelper 测试页面</h1>
+  
+  <div class="tip">
+    <strong>提示:</strong> 请确保已在插件中启动捕获，然后点击下面的按钮测试不同类型的请求。测试完成后，在插件的"查看器"中查看捕获的请求和响应体。
+  </div>
 
-    <div class="test-section">
-      <h2>📝 测试说明</h2>
-      <ol>
-        <li>确保RequestHelper插件已加载并启动捕获</li>
-        <li>打开插件的Service Worker控制台查看日志</li>
-        <li>点击下面的测试按钮发送HTTP请求</li>
-        <li>在RequestHelper的查看器中查看捕获的请求</li>
-      </ol>
-    </div>
+  <div class="test-section">
+    <h2>1. Fetch API - JSON GET 请求</h2>
+    <p class="description">测试 Fetch API 获取 JSON 数据，应该能看到完整的响应体</p>
+    <button onclick="testFetchGet()">发送 GET 请求</button>
+    <div id="fetch-get-result" class="result"></div>
+  </div>
 
-    <div class="test-section">
-      <h2>1. GET 请求测试</h2>
-      <button onclick="testGET()">发送 GET 请求</button>
-      <button onclick="testGETMultiple()">发送 5 个 GET 请求</button>
-      <div id="get-log" class="log"></div>
-    </div>
+  <div class="test-section">
+    <h2>2. Fetch API - JSON POST 请求</h2>
+    <p class="description">测试 Fetch API 发送 POST 请求，包含 JSON 请求体和响应体</p>
+    <button onclick="testFetchPost()">发送 POST 请求</button>
+    <div id="fetch-post-result" class="result"></div>
+  </div>
 
-    <div class="test-section">
-      <h2>2. POST 请求测试</h2>
-      <button onclick="testPOST()">发送 POST (JSON)</button>
-      <button onclick="testPOSTForm()">发送 POST (FormData)</button>
-      <div id="post-log" class="log"></div>
-    </div>
+  <div class="test-section">
+    <h2>3. XMLHttpRequest - GET 请求</h2>
+    <p class="description">测试 XMLHttpRequest 获取数据</p>
+    <button onclick="testXHRGet()">发送 XHR GET 请求</button>
+    <div id="xhr-get-result" class="result"></div>
+  </div>
 
-    <div class="test-section">
-      <h2>3. 其他方法测试</h2>
-      <button onclick="testPUT()">发送 PUT 请求</button>
-      <button onclick="testDELETE()">发送 DELETE 请求</button>
-      <button onclick="testPATCH()">发送 PATCH 请求</button>
-      <div id="other-log" class="log"></div>
-    </div>
+  <div class="test-section">
+    <h2>4. XMLHttpRequest - POST 请求</h2>
+    <p class="description">测试 XMLHttpRequest 发送 POST 请求</p>
+    <button onclick="testXHRPost()">发送 XHR POST 请求</button>
+    <div id="xhr-post-result" class="result"></div>
+  </div>
 
-    <div class="test-section">
-      <h2>4. 错误请求测试</h2>
-      <button onclick="test404()">404 错误</button>
-      <button onclick="test500()">500 错误</button>
-      <button onclick="testNetworkError()">网络错误</button>
-      <div id="error-log" class="log"></div>
-    </div>
+  <div class="test-section">
+    <h2>5. 多个并发请求</h2>
+    <p class="description">测试同时发送多个请求</p>
+    <button onclick="testMultiple()">发送多个请求</button>
+    <div id="multiple-result" class="result"></div>
+  </div>
 
-    <div class="test-section">
-      <h2>5. 批量请求测试</h2>
-      <button onclick="testBatch()">发送 20 个混合请求</button>
-      <button onclick="clearLogs()">清空日志</button>
-      <div id="batch-log" class="log"></div>
-    </div>
+  <div class="test-section">
+    <h2>6. HTML 内容请求</h2>
+    <p class="description">测试获取 HTML 内容</p>
+    <button onclick="testHTML()">获取 HTML</button>
+    <div id="html-result" class="result"></div>
   </div>
 
   <script>
-    const API_BASE = 'https://jsonplaceholder.typicode.com';
-    
-    function log(elementId, message, type = 'info') {
-      const logElement = document.getElementById(elementId);
-      const timestamp = new Date().toLocaleTimeString();
-      const logItem = document.createElement('div');
-      logItem.className = `log-item ${type}`;
-      logItem.textContent = `[${timestamp}] ${message}`;
-      logElement.appendChild(logItem);
-      logElement.scrollTop = logElement.scrollHeight;
+    // 工具函数：显示结果
+    function showResult(id, content, type = 'success') {
+      const element = document.getElementById(id);
+      element.textContent = content;
+      element.className = `result ${type}`;
     }
 
-    // GET 请求测试
-    async function testGET() {
-      log('get-log', '发送 GET 请求...', 'info');
+    // 1. Fetch API - GET
+    async function testFetchGet() {
+      const resultId = 'fetch-get-result';
+      showResult(resultId, '正在发送请求...', '');
+      
       try {
-        const response = await fetch(`${API_BASE}/posts/1`);
+        const response = await fetch('https://jsonplaceholder.typicode.com/posts/1');
         const data = await response.json();
-        log('get-log', `成功: ${response.status} - ${data.title}`, 'success');
+        showResult(resultId, `✓ 请求成功！\n\n${JSON.stringify(data, null, 2)}`, 'success');
       } catch (error) {
-        log('get-log', `错误: ${error.message}`, 'error');
+        showResult(resultId, `✗ 请求失败: ${error.message}`, 'error');
       }
     }
 
-    async function testGETMultiple() {
-      log('get-log', '发送 5 个 GET 请求...', 'info');
-      for (let i = 1; i <= 5; i++) {
-        try {
-          const response = await fetch(`${API_BASE}/posts/${i}`);
-          const data = await response.json();
-          log('get-log', `请求 ${i}: ${response.status}`, 'success');
-        } catch (error) {
-          log('get-log', `请求 ${i} 失败: ${error.message}`, 'error');
-        }
-      }
-    }
-
-    // POST 请求测试
-    async function testPOST() {
-      log('post-log', '发送 POST 请求 (JSON)...', 'info');
+    // 2. Fetch API - POST
+    async function testFetchPost() {
+      const resultId = 'fetch-post-result';
+      showResult(resultId, '正在发送请求...', '');
+      
       try {
-        const response = await fetch(`${API_BASE}/posts`, {
+        const requestData = {
+          title: 'RequestHelper Test',
+          body: 'Testing response body capture',
+          userId: 999
+        };
+        
+        const response = await fetch('https://jsonplaceholder.typicode.com/posts', {
           method: 'POST',
           headers: {
-            'Content-Type': 'application/json',
+            'Content-Type': 'application/json'
           },
-          body: JSON.stringify({
-            title: 'RequestHelper Test',
-            body: 'This is a test post',
-            userId: 1
-          })
+          body: JSON.stringify(requestData)
         });
-        const data = await response.json();
-        log('post-log', `成功: ${response.status} - ID: ${data.id}`, 'success');
-      } catch (error) {
-        log('post-log', `错误: ${error.message}`, 'error');
-      }
-    }
-
-    async function testPOSTForm() {
-      log('post-log', '发送 POST 请求 (FormData)...', 'info');
-      try {
-        const formData = new FormData();
-        formData.append('title', 'Test Form');
-        formData.append('body', 'Form data test');
-        formData.append('userId', '1');
         
-        const response = await fetch(`${API_BASE}/posts`, {
-          method: 'POST',
-          body: formData
-        });
         const data = await response.json();
-        log('post-log', `成功: ${response.status}`, 'success');
+        showResult(resultId, `✓ 请求成功！\n\n请求体:\n${JSON.stringify(requestData, null, 2)}\n\n响应体:\n${JSON.stringify(data, null, 2)}`, 'success');
       } catch (error) {
-        log('post-log', `错误: ${error.message}`, 'error');
+        showResult(resultId, `✗ 请求失败: ${error.message}`, 'error');
       }
     }
 
-    // PUT 请求测试
-    async function testPUT() {
-      log('other-log', '发送 PUT 请求...', 'info');
-      try {
-        const response = await fetch(`${API_BASE}/posts/1`, {
-          method: 'PUT',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({
-            id: 1,
-            title: 'Updated Title',
-            body: 'Updated body',
-            userId: 1
-          })
-        });
-        log('other-log', `成功: ${response.status}`, 'success');
-      } catch (error) {
-        log('other-log', `错误: ${error.message}`, 'error');
-      }
-    }
-
-    // DELETE 请求测试
-    async function testDELETE() {
-      log('other-log', '发送 DELETE 请求...', 'info');
-      try {
-        const response = await fetch(`${API_BASE}/posts/1`, {
-          method: 'DELETE'
-        });
-        log('other-log', `成功: ${response.status}`, 'success');
-      } catch (error) {
-        log('other-log', `错误: ${error.message}`, 'error');
-      }
-    }
-
-    // PATCH 请求测试
-    async function testPATCH() {
-      log('other-log', '发送 PATCH 请求...', 'info');
-      try {
-        const response = await fetch(`${API_BASE}/posts/1`, {
-          method: 'PATCH',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({
-            title: 'Patched Title'
-          })
-        });
-        log('other-log', `成功: ${response.status}`, 'success');
-      } catch (error) {
-        log('other-log', `错误: ${error.message}`, 'error');
-      }
-    }
-
-    // 404 错误测试
-    async function test404() {
-      log('error-log', '测试 404 错误...', 'info');
-      try {
-        const response = await fetch(`${API_BASE}/posts/999999`);
-        log('error-log', `状态: ${response.status} ${response.statusText}`, 
-            response.status === 404 ? 'success' : 'error');
-      } catch (error) {
-        log('error-log', `错误: ${error.message}`, 'error');
-      }
-    }
-
-    // 500 错误测试
-    async function test500() {
-      log('error-log', '测试 500 错误...', 'info');
-      try {
-        // jsonplaceholder不会返回500，这里模拟
-        const response = await fetch(`${API_BASE}/posts/invalid-endpoint`);
-        log('error-log', `状态: ${response.status}`, 
-            response.status >= 500 ? 'success' : 'info');
-      } catch (error) {
-        log('error-log', `错误: ${error.message}`, 'error');
-      }
-    }
-
-    // 网络错误测试
-    async function testNetworkError() {
-      log('error-log', '测试网络错误...', 'info');
-      try {
-        const response = await fetch('https://this-domain-does-not-exist-123456789.com/');
-        log('error-log', `意外成功: ${response.status}`, 'error');
-      } catch (error) {
-        log('error-log', `预期错误: ${error.message}`, 'success');
-      }
-    }
-
-    // 批量请求测试
-    async function testBatch() {
-      log('batch-log', '开始批量测试...', 'info');
-      const methods = ['GET', 'POST', 'PUT', 'DELETE', 'PATCH'];
+    // 3. XMLHttpRequest - GET
+    function testXHRGet() {
+      const resultId = 'xhr-get-result';
+      showResult(resultId, '正在发送请求...', '');
       
-      for (let i = 0; i < 20; i++) {
-        const method = methods[i % methods.length];
-        const postId = (i % 10) + 1;
-        
-        try {
-          const options = {
-            method: method,
-          };
-          
-          if (method === 'POST' || method === 'PUT' || method === 'PATCH') {
-            options.headers = { 'Content-Type': 'application/json' };
-            options.body = JSON.stringify({ title: `Test ${i}` });
-          }
-          
-          const response = await fetch(`${API_BASE}/posts/${postId}`, options);
-          log('batch-log', `请求 ${i + 1}: ${method} - ${response.status}`, 'success');
-        } catch (error) {
-          log('batch-log', `请求 ${i + 1} 失败: ${error.message}`, 'error');
+      const xhr = new XMLHttpRequest();
+      xhr.open('GET', 'https://jsonplaceholder.typicode.com/users/1');
+      
+      xhr.onload = function() {
+        if (xhr.status === 200) {
+          const data = JSON.parse(xhr.responseText);
+          showResult(resultId, `✓ 请求成功！\n\n${JSON.stringify(data, null, 2)}`, 'success');
+        } else {
+          showResult(resultId, `✗ 请求失败: ${xhr.status}`, 'error');
         }
-        
-        // 小延迟避免过快
-        await new Promise(resolve => setTimeout(resolve, 100));
-      }
+      };
       
-      log('batch-log', '批量测试完成！', 'info');
+      xhr.onerror = function() {
+        showResult(resultId, `✗ 请求失败: 网络错误`, 'error');
+      };
+      
+      xhr.send();
     }
 
-    // 清空日志
-    function clearLogs() {
-      const logs = document.querySelectorAll('.log');
-      logs.forEach(log => log.innerHTML = '');
+    // 4. XMLHttpRequest - POST
+    function testXHRPost() {
+      const resultId = 'xhr-post-result';
+      showResult(resultId, '正在发送请求...', '');
+      
+      const xhr = new XMLHttpRequest();
+      xhr.open('POST', 'https://jsonplaceholder.typicode.com/posts');
+      xhr.setRequestHeader('Content-Type', 'application/json');
+      
+      const requestData = {
+        title: 'XHR Test',
+        body: 'Testing XMLHttpRequest',
+        userId: 888
+      };
+      
+      xhr.onload = function() {
+        if (xhr.status === 201) {
+          const data = JSON.parse(xhr.responseText);
+          showResult(resultId, `✓ 请求成功！\n\n请求体:\n${JSON.stringify(requestData, null, 2)}\n\n响应体:\n${JSON.stringify(data, null, 2)}`, 'success');
+        } else {
+          showResult(resultId, `✗ 请求失败: ${xhr.status}`, 'error');
+        }
+      };
+      
+      xhr.onerror = function() {
+        showResult(resultId, `✗ 请求失败: 网络错误`, 'error');
+      };
+      
+      xhr.send(JSON.stringify(requestData));
     }
 
-    // 页面加载时显示欢迎消息
+    // 5. 多个并发请求
+    async function testMultiple() {
+      const resultId = 'multiple-result';
+      showResult(resultId, '正在发送多个请求...', '');
+      
+      try {
+        const requests = [
+          fetch('https://jsonplaceholder.typicode.com/posts/1'),
+          fetch('https://jsonplaceholder.typicode.com/posts/2'),
+          fetch('https://jsonplaceholder.typicode.com/posts/3'),
+          fetch('https://jsonplaceholder.typicode.com/users/1'),
+          fetch('https://jsonplaceholder.typicode.com/users/2')
+        ];
+        
+        const responses = await Promise.all(requests);
+        const data = await Promise.all(responses.map(r => r.json()));
+        
+        showResult(resultId, `✓ 成功发送 ${data.length} 个请求！\n\n${data.map((d, i) => `请求 ${i + 1}: ${JSON.stringify(d).substring(0, 100)}...`).join('\n')}`, 'success');
+      } catch (error) {
+        showResult(resultId, `✗ 请求失败: ${error.message}`, 'error');
+      }
+    }
+
+    // 6. HTML 内容
+    async function testHTML() {
+      const resultId = 'html-result';
+      showResult(resultId, '正在获取 HTML...', '');
+      
+      try {
+        const response = await fetch('https://example.com');
+        const html = await response.text();
+        showResult(resultId, `✓ 成功获取 HTML！\n\n${html.substring(0, 500)}...\n\n(显示前 500 个字符)`, 'success');
+      } catch (error) {
+        showResult(resultId, `✗ 请求失败: ${error.message}`, 'error');
+      }
+    }
+
+    // 页面加载完成提示
     window.addEventListener('load', () => {
       console.log('RequestHelper 测试页面已加载');
-      console.log('请确保插件已启动捕获功能');
+      console.log('请确保插件已启动捕获，然后点击按钮进行测试');
     });
   </script>
 </body>

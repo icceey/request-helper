@@ -104,3 +104,34 @@ h1 {
   background: #f8f9fa;
   border-color: #1a73e8;
 }
+
+/* Toast 提示样式 */
+.toast {
+  position: fixed;
+  bottom: 20px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: #323232;
+  color: white;
+  padding: 12px 16px;
+  border-radius: 4px;
+  font-size: 13px;
+  opacity: 0;
+  transition: opacity 0.3s ease;
+  z-index: 10000;
+  pointer-events: none;
+  max-width: 280px;
+  text-align: center;
+}
+
+.toast.show {
+  opacity: 1;
+}
+
+.toast.success {
+  background: #0f9d58;
+}
+
+.toast.error {
+  background: #d93025;
+}

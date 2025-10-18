@@ -75,15 +75,13 @@ chrome.runtime.onStartup.addListener(() => {
 
 // 监听来自popup或options的消息
 chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
-  console.log('Message received:', message);
-  
   handleMessage(message, sender)
     .then(response => {
       sendResponse(response);
     })
     .catch(error => {
-      console.error('Error handling message:', error);
-      sendResponse({ error: error.message });
+      console.error('❌ RequestHelper: Error handling message:', error);
+      sendResponse({ success: false, error: error.message });
     });
   
   return true; // 保持消息通道开启
@@ -137,6 +135,16 @@ async function handleMessage(message, sender) {
     case 'GET_REQUEST_BY_ID':
       const request = await StorageManager.getRequestById(message.id);
       return { success: true, request };
+
+    case 'RESPONSE_BODY_CAPTURED':
+      // 处理从 content script 捕获的响应体
+      try {
+        await RequestCapture.handleResponseBody(message.data);
+        return { success: true };
+      } catch (error) {
+        console.error('❌ RequestHelper: Failed to process response body:', error);
+        throw error;
+      }
 
     default:
       console.warn('Unknown message type:', message.type);

@@ -104,24 +104,44 @@ function handleViewRequests() {
   });
 }
 
+// 显示 Toast 提示
+function showToast(message, type = 'success') {
+  // 移除已存在的 toast
+  const existingToast = document.querySelector('.toast');
+  if (existingToast) {
+    existingToast.remove();
+  }
+
+  // 创建新 toast
+  const toast = document.createElement('div');
+  toast.className = `toast ${type}`;
+  toast.textContent = message;
+  document.body.appendChild(toast);
+
+  // 显示 toast
+  setTimeout(() => toast.classList.add('show'), 10);
+
+  // 3秒后自动隐藏
+  setTimeout(() => {
+    toast.classList.remove('show');
+    setTimeout(() => toast.remove(), 300);
+  }, 3000);
+}
+
 // 清空数据
 async function handleClear() {
   console.log('Clear data');
   
-  if (!confirm('确定要清空所有捕获的数据吗？')) {
-    return;
-  }
-
   try {
     const response = await chrome.runtime.sendMessage({ type: 'CLEAR_REQUESTS' });
     
     if (response.success) {
       requestCount.textContent = '0';
-      alert('数据已清空');
+      showToast('数据已清空', 'success');
     }
   } catch (error) {
     console.error('Failed to clear:', error);
-    alert('清空失败');
+    showToast('清空失败', 'error');
   }
 }
 
