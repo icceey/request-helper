@@ -78,7 +78,7 @@ No test suite exists. Testing is manual via:
 ## Critical Rules
 
 ### 1. Documentation Policy
-**NEVER generate summary or change documentation files**
+**NEVER generate summary or change or documentation files**
 - Do NOT create files like `SUMMARY.md`, `CHANGES.md`, `UPDATE.md`, etc.
 - Do NOT ask if documentation is needed
 - Do NOT offer to document changes made
@@ -131,6 +131,12 @@ All `chrome.runtime.sendMessage` calls use `{ type: string, ...data }` pattern:
 - Method badges: `.method-GET`, `.method-POST`, etc. with color coding
 - Toast notifications: `.toast.success`, `.toast.error` with opacity transitions
 
+### 5. Internationalization (i18n)
+- Messages in `_locales/{locale}/messages.json` (en, zh_CN)
+- Manifest uses `__MSG_key__` syntax: `"name": "__MSG_extName__"`
+- UI files use `utils/i18n.js`: `getMessage('key')` and `translatePage()`
+- All user-facing text should be externalized for multi-language support
+
 ## Common Tasks
 
 ### Adding New Filter to Viewer
@@ -144,7 +150,7 @@ See recent status filter addition as reference.
 ### Capturing New Data Fields
 1. Add field capture in `background/capture.js` onBeforeRequest/onCompleted hooks
 2. Add field capture in `content/interceptor-injected.js` for XHR/Fetch data
-3. Update merge logic in `RequestCapture.handleResponseBodyCapture()`
+3. Update merge logic in `RequestCapture.handleResponseBody()` - merges webRequest + content script data
 4. Update viewer display in `viewer/viewer.js` renderRequestDetails()
 
 ### Adding Configuration Options
@@ -161,6 +167,10 @@ See recent status filter addition as reference.
 - **Service worker lifecycle**: May terminate after 30s idle, use `chrome.storage` not in-memory state
 - **CORS/CSP restrictions**: Page-injected script bypasses these, content script doesn't
 - **Matching algorithm**: 5-second time window + URL + method matching (see `RequestCapture.findMatchingRequest()`)
+  ```javascript
+  // Matches if: same URL, same method, timestamp within 5000ms
+  // First checks pendingRequests Map, then falls back to recent stored requests
+  ```
 
 ## File Organization
 ```

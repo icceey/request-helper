@@ -45,13 +45,29 @@
     "message": "Request Viewer",
     "description": "Request viewer page title"
   },
-  "searchUrl": {
-    "message": "Search URL...",
+  "search": {
+    "message": "Search...",
     "description": "Search input placeholder"
+  },
+  "searchUrl": {
+    "message": "URL",
+    "description": "Search scope for URL"
+  },
+  "searchRequestBody": {
+    "message": "Request Body",
+    "description": "Search scope for request body"
+  },
+  "searchResponseBody": {
+    "message": "Response Body",
+    "description": "Search scope for response body"
   },
   "allMethods": {
     "message": "All Methods",
     "description": "Filter option for all methods"
+  },
+  "selectMethod": {
+    "message": "Select Method",
+    "description": "Method dropdown header"
   },
   "statusCode": {
     "message": "Status Code",
@@ -200,6 +216,14 @@
     "message": "Data cleared successfully",
     "description": "Success message after clearing data"
   },
+  "copy": {
+    "message": "Copy",
+    "description": "Copy button"
+  },
+  "copiedSuccess": {
+    "message": "Copied to clipboard",
+    "description": "Success message after copying"
+  },
   "copySuccess": {
     "message": "Copied to clipboard",
     "description": "Success message after copying"
@@ -237,6 +261,10 @@
   "noStatusCodes": {
     "message": "No status codes",
     "description": "Empty state when no status codes available"
+  },
+  "noMethods": {
+    "message": "No methods",
+    "description": "Empty state when no methods available"
   },
   
   "none": {

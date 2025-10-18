@@ -45,13 +45,29 @@
     "message": "请求查看器",
     "description": "请求查看器页面标题"
   },
-  "searchUrl": {
-    "message": "搜索 URL...",
+  "search": {
+    "message": "搜索...",
     "description": "搜索框占位符"
+  },
+  "searchUrl": {
+    "message": "URL",
+    "description": "搜索范围：URL"
+  },
+  "searchRequestBody": {
+    "message": "请求体",
+    "description": "搜索范围：请求体"
+  },
+  "searchResponseBody": {
+    "message": "响应体",
+    "description": "搜索范围：响应体"
   },
   "allMethods": {
     "message": "全部方法",
     "description": "全部方法筛选选项"
+  },
+  "selectMethod": {
+    "message": "选择请求方法",
+    "description": "请求方法下拉菜单标题"
   },
   "statusCode": {
     "message": "状态码",
@@ -200,6 +216,14 @@
     "message": "数据已清空",
     "description": "清空数据成功消息"
   },
+  "copy": {
+    "message": "复制",
+    "description": "复制按钮"
+  },
+  "copiedSuccess": {
+    "message": "已复制到剪贴板",
+    "description": "复制成功消息"
+  },
   "copySuccess": {
     "message": "已复制到剪贴板",
     "description": "复制成功消息"
@@ -237,6 +261,10 @@
   "noStatusCodes": {
     "message": "暂无状态码",
     "description": "没有可用状态码时的空状态"
+  },
+  "noMethods": {
+    "message": "暂无请求方法",
+    "description": "没有可用请求方法时的空状态"
   },
   
   "none": {

@@ -11,15 +11,35 @@
     <header>
       <h1 data-i18n="requestViewer">Request Viewer</h1>
       <div class="toolbar">
-        <input type="text" id="search-input" data-i18n-placeholder="searchUrl" placeholder="Search URL...">
-        <select id="method-filter">
-          <option value="" data-i18n="allMethods">All Methods</option>
-          <option value="GET">GET</option>
-          <option value="POST">POST</option>
-          <option value="PUT">PUT</option>
-          <option value="DELETE">DELETE</option>
-          <option value="PATCH">PATCH</option>
-        </select>
+        <div class="search-container">
+          <input type="text" id="search-input" data-i18n-placeholder="search" placeholder="Search...">
+          <div class="search-scope-container">
+            <label class="search-scope-item">
+              <input type="checkbox" id="search-url" value="url" checked>
+              <span data-i18n="searchUrl">URL</span>
+            </label>
+            <label class="search-scope-item">
+              <input type="checkbox" id="search-request-body" value="requestBody">
+              <span data-i18n="searchRequestBody">Request Body</span>
+            </label>
+            <label class="search-scope-item">
+              <input type="checkbox" id="search-response-body" value="responseBody">
+              <span data-i18n="searchResponseBody">Response Body</span>
+            </label>
+          </div>
+        </div>
+        <div class="method-filter-container">
+          <button id="method-filter-btn" class="btn"><span data-i18n="method">Method</span> ▼</button>
+          <div id="method-filter-dropdown" class="method-dropdown">
+            <div class="method-dropdown-header">
+              <span data-i18n="selectMethod">Select Method</span>
+              <button id="method-clear-btn" class="clear-filter-btn" data-i18n="clear">Clear</button>
+            </div>
+            <div id="method-filter-list" class="method-filter-list">
+              <!-- Dynamically generated -->
+            </div>
+          </div>
+        </div>
         <div class="status-filter-container">
           <button id="status-filter-btn" class="btn"><span data-i18n="statusCode">Status Code</span> ▼</button>
           <div id="status-filter-dropdown" class="status-dropdown">
