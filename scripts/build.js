@@ -18,7 +18,8 @@ const FILES_TO_COPY = [
   'options',
   'utils',
   'icons',
-  'viewer'
+  'viewer',
+  '_locales'
 ];
 
 // 清理dist目录

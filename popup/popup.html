@@ -1,33 +1,33 @@
 <!DOCTYPE html>
-<html lang="zh-CN">
+<html lang="en">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>RequestHelper</title>
+  <title data-i18n="extName">RequestHelper</title>
   <link rel="stylesheet" href="popup.css">
 </head>
 <body>
   <div class="container">
     <header>
-      <h1>RequestHelper</h1>
+      <h1 data-i18n="extName">RequestHelper</h1>
       <div class="status">
-        <span id="status-text">准备就绪</span>
-        <button id="toggle-btn" class="btn-primary">启动捕获</button>
+        <span id="status-text" data-i18n="ready">Ready</span>
+        <button id="toggle-btn" class="btn-primary" data-i18n="startCapture">Start Capture</button>
       </div>
     </header>
 
     <main>
       <section class="stats">
         <div class="stat-item">
-          <span class="stat-label">捕获请求数</span>
+          <span class="stat-label" data-i18n="capturedRequests">Captured Requests</span>
           <span class="stat-value" id="request-count">0</span>
         </div>
       </section>
 
       <section class="actions">
-        <button id="view-requests-btn" class="btn">查看请求</button>
-        <button id="clear-btn" class="btn">清空数据</button>
-        <button id="settings-btn" class="btn">设置</button>
+        <button id="view-requests-btn" class="btn" data-i18n="viewRequests">View Requests</button>
+        <button id="clear-btn" class="btn" data-i18n="clearData">Clear Data</button>
+        <button id="settings-btn" class="btn" data-i18n="settings">Settings</button>
       </section>
     </main>
   </div>

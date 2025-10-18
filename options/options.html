@@ -1,48 +1,54 @@
 <!DOCTYPE html>
-<html lang="zh-CN">
+<html lang="en">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>RequestHelper - 设置</title>
+  <title data-i18n="requestHelperSettings">RequestHelper - Settings</title>
   <link rel="stylesheet" href="options.css">
 </head>
 <body>
   <div class="container">
     <header>
-      <h1>RequestHelper 设置</h1>
+      <h1 data-i18n="requestHelperSettings">RequestHelper Settings</h1>
     </header>
 
     <main>
       <section class="settings-section">
-        <h2>基础设置</h2>
+        <h2 data-i18n="basicSettings">Basic Settings</h2>
         <div class="setting-item">
           <label>
             <input type="checkbox" id="auto-start" />
-            自动启动捕获
+            <span data-i18n="autoStartCapture">Auto-start capture</span>
+          </label>
+        </div>
+        <div class="setting-item">
+          <label>
+            <input type="checkbox" id="capture-static-resources" />
+            <span data-i18n="captureStaticResources">Capture static resources (images, CSS, JS, fonts, etc.)</span>
           </label>
         </div>
       </section>
 
       <section class="settings-section">
-        <h2>URL 过滤规则</h2>
-        <p class="description">配置需要捕获的请求URL模式，支持通配符 *</p>
+        <h2 data-i18n="urlFilterRules">URL Filter Rules</h2>
+        <p class="description" data-i18n="urlFilterDescription">Configure URL patterns to capture, supports wildcard *</p>
         
         <div class="url-patterns">
-          <textarea id="url-patterns" rows="10" placeholder="每行一个URL模式，例如：&#10;https://api.example.com/*&#10;*://*/api/*"></textarea>
+          <textarea id="url-patterns" rows="10" data-i18n-placeholder="urlPatternsPlaceholder" placeholder="One URL pattern per line, for example:&#10;https://api.example.com/*&#10;*://*/api/*"></textarea>
         </div>
       </section>
 
       <section class="settings-section">
-        <h2>存储设置</h2>
+        <h2 data-i18n="storageSettings">Storage Settings</h2>
         <div class="setting-item">
-          <label for="max-requests">最大存储请求数：</label>
+          <label for="max-requests" data-i18n="maxStoredRequests">Maximum stored requests:</label>
           <input type="number" id="max-requests" min="10" max="10000" value="1000" />
         </div>
       </section>
 
       <div class="actions">
-        <button id="save-btn" class="btn-primary">保存设置</button>
-        <button id="reset-btn" class="btn">恢复默认</button>
+        <button id="save-btn" class="btn-primary" data-i18n="saveSettings">Save Settings</button>
+        <button id="reset-btn" class="btn" data-i18n="resetSettings">Restore Defaults</button>
       </div>
 
       <div id="save-message" class="message hidden"></div>

@@ -2,8 +2,11 @@
  * RequestHelper - Options Page
  */
 
+import { getMessage, translatePage } from '../utils/i18n.js';
+
 // DOM 元素
 const autoStartCheckbox = document.getElementById('auto-start');
+const captureStaticResourcesCheckbox = document.getElementById('capture-static-resources');
 const urlPatternsTextarea = document.getElementById('url-patterns');
 const maxRequestsInput = document.getElementById('max-requests');
 const saveBtn = document.getElementById('save-btn');
@@ -15,12 +18,16 @@ const DEFAULT_CONFIG = {
   autoStart: false,
   urlPatterns: ['*://*/*'],
   maxRequests: 1000,
-  enabled: false
+  enabled: false,
+  captureStaticResources: false // 默认不捕获静态资源
 };
 
 // 初始化
 async function init() {
   console.log('Options page initialized');
+  
+  // 翻译页面
+  translatePage();
   
   // 加载配置
   await loadConfig();
@@ -42,17 +49,19 @@ async function loadConfig() {
       
       // 填充表单
       autoStartCheckbox.checked = config.autoStart || false;
+      captureStaticResourcesCheckbox.checked = config.captureStaticResources || false;
       urlPatternsTextarea.value = (config.urlPatterns || DEFAULT_CONFIG.urlPatterns).join('\n');
       maxRequestsInput.value = config.maxRequests || DEFAULT_CONFIG.maxRequests;
     } else {
       // 使用默认配置
       autoStartCheckbox.checked = DEFAULT_CONFIG.autoStart;
+      captureStaticResourcesCheckbox.checked = DEFAULT_CONFIG.captureStaticResources;
       urlPatternsTextarea.value = DEFAULT_CONFIG.urlPatterns.join('\n');
       maxRequestsInput.value = DEFAULT_CONFIG.maxRequests;
     }
   } catch (error) {
     console.error('Failed to load config:', error);
-    showMessage('加载配置失败', 'error');
+    showMessage(getMessage('failedToLoadConfig'), 'error');
   }
 }
 
@@ -70,18 +79,19 @@ async function handleSave() {
 
     // 验证URL模式
     if (urlPatterns.length === 0) {
-      showMessage('请至少添加一个URL模式', 'error');
+      showMessage(getMessage('pleaseAddUrlPattern'), 'error');
       return;
     }
 
     const maxRequests = parseInt(maxRequestsInput.value, 10);
     if (isNaN(maxRequests) || maxRequests < 10 || maxRequests > 10000) {
-      showMessage('最大请求数必须在10-10000之间', 'error');
+      showMessage(getMessage('maxRequestsRange'), 'error');
       return;
     }
 
     const config = {
       autoStart: autoStartCheckbox.checked,
+      captureStaticResources: captureStaticResourcesCheckbox.checked,
       urlPatterns: urlPatterns,
       maxRequests: maxRequests
     };
@@ -93,13 +103,13 @@ async function handleSave() {
     });
     
     if (response.success) {
-      showMessage('设置已保存', 'success');
+      showMessage(getMessage('settingsSaved'), 'success');
     } else {
-      showMessage('保存失败', 'error');
+      showMessage(getMessage('saveFailed'), 'error');
     }
   } catch (error) {
     console.error('Failed to save config:', error);
-    showMessage('保存失败: ' + error.message, 'error');
+    showMessage(getMessage('saveFailed') + ': ' + error.message, 'error');
   }
 }
 
@@ -107,15 +117,16 @@ async function handleSave() {
 async function handleReset() {
   console.log('Resetting to default config');
   
-  if (!confirm('确定要恢复默认设置吗？')) {
+  if (!confirm(getMessage('confirmClear'))) {
     return;
   }
 
   autoStartCheckbox.checked = DEFAULT_CONFIG.autoStart;
+  captureStaticResourcesCheckbox.checked = DEFAULT_CONFIG.captureStaticResources;
   urlPatternsTextarea.value = DEFAULT_CONFIG.urlPatterns.join('\n');
   maxRequestsInput.value = DEFAULT_CONFIG.maxRequests;
   
-  showMessage('已恢复默认设置，请点击"保存设置"以应用', 'success');
+  showMessage(getMessage('defaultSettingsRestored'), 'success');
 }
 
 // 显示消息

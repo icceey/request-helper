@@ -128,10 +128,6 @@ async function handleMessage(message, sender) {
       
       return { success: true };
 
-    case 'EXPORT_REQUESTS':
-      const jsonData = await StorageManager.exportRequests();
-      return { success: true, data: jsonData };
-
     case 'GET_REQUEST_BY_ID':
       const request = await StorageManager.getRequestById(message.id);
       return { success: true, request };

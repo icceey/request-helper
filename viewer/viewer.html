@@ -1,27 +1,39 @@
 <!DOCTYPE html>
-<html lang="zh-CN">
+<html lang="en">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>RequestHelper - 请求查看器</title>
+  <title data-i18n="requestViewer">RequestHelper - Request Viewer</title>
   <link rel="stylesheet" href="viewer.css">
 </head>
 <body>
   <div class="container">
     <header>
-      <h1>请求查看器</h1>
+      <h1 data-i18n="requestViewer">Request Viewer</h1>
       <div class="toolbar">
-        <input type="text" id="search-input" placeholder="搜索URL...">
+        <input type="text" id="search-input" data-i18n-placeholder="searchUrl" placeholder="Search URL...">
         <select id="method-filter">
-          <option value="">所有方法</option>
+          <option value="" data-i18n="allMethods">All Methods</option>
           <option value="GET">GET</option>
           <option value="POST">POST</option>
           <option value="PUT">PUT</option>
           <option value="DELETE">DELETE</option>
           <option value="PATCH">PATCH</option>
         </select>
-        <button id="export-btn" class="btn">导出</button>
-        <button id="clear-btn" class="btn btn-danger">清空</button>
+        <div class="status-filter-container">
+          <button id="status-filter-btn" class="btn"><span data-i18n="statusCode">Status Code</span> ▼</button>
+          <div id="status-filter-dropdown" class="status-dropdown">
+            <div class="status-dropdown-header">
+              <span data-i18n="selectStatusCode">Select Status Code</span>
+              <button id="status-clear-btn" class="clear-filter-btn" data-i18n="clear">Clear</button>
+            </div>
+            <div id="status-filter-list" class="status-filter-list">
+              <!-- Dynamically generated -->
+            </div>
+          </div>
+        </div>
+        <button id="slow-request-btn" class="btn toggle-btn" data-i18n-title="slowRequestsTooltip" title="Show only requests over 1 second">🐌 <span data-i18n="slowRequests">Slow Requests</span></button>
+        <button id="clear-btn" class="btn btn-danger" data-i18n="clear">Clear</button>
       </div>
     </header>
 
@@ -29,14 +41,14 @@
       <div class="requests-container">
         <div class="requests-list" id="requests-list">
           <div class="empty-state">
-            <p>暂无捕获的请求</p>
-            <p class="hint">在popup中点击"启动捕获"开始捕获请求</p>
+            <p data-i18n="noCapturedRequests">No captured requests</p>
+            <p class="hint" data-i18n="startCaptureHint">Click "Start Capture" in popup to begin capturing requests</p>
           </div>
         </div>
         
         <div class="request-details" id="request-details">
           <div class="empty-state">
-            <p>选择一个请求查看详情</p>
+            <p data-i18n="selectRequest">Select a request to view details</p>
           </div>
         </div>
       </div>

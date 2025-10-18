@@ -87,15 +87,34 @@ export class RequestCapture {
   }
 
   /**
+   * 检查是否为静态资源请求
+   */
+  static isStaticResource(type) {
+    const staticResourceTypes = [
+      'image',       // 图片
+      'stylesheet',  // CSS
+      'script',      // JavaScript
+      'font',        // 字体
+      'media'        // 音视频
+    ];
+    return staticResourceTypes.includes(type);
+  }
+
+  /**
    * 检查是否应该捕获此请求
    */
-  static shouldCapture(url) {
+  static shouldCapture(url, type) {
     if (!this.isCapturing) {
       return false;
     }
 
     // 过滤掉Chrome内部请求
     if (url.startsWith('chrome://') || url.startsWith('chrome-extension://')) {
+      return false;
+    }
+
+    // 如果不捕获静态资源，且当前请求是静态资源，则跳过
+    if (!this.config?.captureStaticResources && type && this.isStaticResource(type)) {
       return false;
     }
 
@@ -108,7 +127,7 @@ export class RequestCapture {
    * 请求发送前（捕获请求体）
    */
   static onBeforeRequest(details) {
-    if (!this.shouldCapture(details.url)) {
+    if (!this.shouldCapture(details.url, details.type)) {
       return;
     }
 
@@ -131,7 +150,7 @@ export class RequestCapture {
    * 请求发送时（捕获请求头）
    */
   static onSendHeaders(details) {
-    if (!this.shouldCapture(details.url)) {
+    if (!this.shouldCapture(details.url, details.type)) {
       return;
     }
 
@@ -146,7 +165,7 @@ export class RequestCapture {
    * 响应头接收（捕获响应头）
    */
   static onHeadersReceived(details) {
-    if (!this.shouldCapture(details.url)) {
+    if (!this.shouldCapture(details.url, details.type)) {
       return;
     }
 
@@ -163,7 +182,7 @@ export class RequestCapture {
    * 请求完成
    */
   static async onCompleted(details) {
-    if (!this.shouldCapture(details.url)) {
+    if (!this.shouldCapture(details.url, details.type)) {
       return;
     }
 
@@ -192,7 +211,7 @@ export class RequestCapture {
    * 请求错误
    */
   static onError(details) {
-    if (!this.shouldCapture(details.url)) {
+    if (!this.shouldCapture(details.url, details.type)) {
       return;
     }
 

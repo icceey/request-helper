@@ -1,118 +1,115 @@
 # RequestHelper
 
-一个强大的Chrome浏览器开发工具插件，用于静默抓包和请求分析。
+English | [中文](./README_zh-CN.md)
 
-## 📖 项目简介
+A powerful Chrome Manifest V3 extension for silent network request capturing and analysis. It uses a **dual-layer interception architecture** to bypass webRequest API limitations and capture complete request/response bodies.
 
-RequestHelper 是一个专为开发者设计的Chrome浏览器插件，它能够在后台静默地捕获HTTP请求，无需像DevTools那样必须打开才能工作。这对于需要长时间监控、调试特定请求或分析网页行为的开发场景非常有用。
+> **🤖 Note: This project is entirely AI-generated**
 
-## ✨ 核心功能
+## ✨ Features
 
-### 已实现功能 ✅
-- 🎯 **静默抓包**: 无需打开DevTools即可捕获网络请求
-- 🔍 **URL过滤**: 支持配置需要抓包的请求URL模式（支持通配符）
-- 📦 **完整信息捕获**: 
-  - 请求头 (Request Headers) ✅
-  - 请求体 (Request Body) ✅
-  - 响应头 (Response Headers) ✅
-  - 响应体大小 (Response Body Size) ✅
-- 💾 **数据管理**: Chrome Storage本地存储，支持导出
-- 🎨 **用户界面**: 
-  - Popup快速控制面板
-  - Options配置页面
-  - Viewer请求查看器
-- 📊 **统计分析**: 实时显示捕获数量和请求统计
-- 🔄 **搜索过滤**: 支持URL搜索和HTTP方法过滤
+- **Complete Request/Response Capture**
+  - Captures full request and response bodies (including XMLHttpRequest and Fetch API)
+  - Automatic parsing of JSON, HTML, XML, and text formats
+  - Protection against large response bodies (default 5MB limit)
 
-### 规划中的功能 🚧
-- 📊 请求/响应完整体内容捕获（通过Content Script）
-- 🔄 请求重放
-- 🎨 请求/响应修改
-- � 更多数据导出格式（HAR等）
-- 🔔 实时通知与告警
-- 📈 性能分析图表
+- **Dual-Layer Interception Architecture**
+  - Page context interceptor for full data access
+  - Content script bridge for Chrome extension communication
+  - Bypasses Manifest V3 webRequest API limitations
 
-## 🏗️ 技术架构
+- **Advanced Filtering**
+  - Filter by URL patterns (wildcard support: `*api.example.com*`)
+  - Filter by HTTP methods (GET, POST, PUT, DELETE, etc.)
+  - Filter by status codes (2xx, 3xx, 4xx, 5xx)
+  - Exclude static resources (images, CSS, JS, fonts)
 
-### 设计原则
-- **模块化设计**: 清晰的功能模块划分，便于扩展和维护
-- **性能优先**: 最小化对浏览器性能的影响
-- **数据安全**: 本地存储，确保敏感数据安全
-- **用户友好**: 直观的配置界面和操作流程
+- **Rich Request Analysis**
+  - View request/response headers
+  - Inspect request/response bodies
+  - Track request timing and duration
+  - Export captured data as JSON
 
-### 核心模块
-```
-requestHelper/
-├── manifest.json          # 插件配置文件
-├── background/           # 后台服务（Service Worker）
-│   ├── service-worker.js # 主要的抓包逻辑
-│   └── storage.js        # 数据存储管理
-├── popup/                # 弹出窗口界面
-│   ├── popup.html
-│   ├── popup.js
-│   └── popup.css
-├── options/              # 配置页面
-│   ├── options.html
-│   ├── options.js
-│   └── options.css
-├── content/              # 内容脚本（如需要）
-│   └── content.js
-└── utils/                # 工具函数
-    ├── filter.js         # URL过滤逻辑
-    └── formatter.js      # 数据格式化
-```
+- **User-Friendly Interface**
+  - Quick control popup
+  - Detailed request viewer with search and filters
+  - Configurable settings page
+  - Multi-language support (English, 简体中文)
 
-## 🚀 快速开始
+## 🚀 Installation
 
-### 安装依赖
-```bash
-npm install
-```
+### From Source
 
-### 开发模式
-```bash
-npm run dev
-```
+1. Clone this repository:
 
-### 构建生产版本
-```bash
-npm run build
-```
+   ```bash
+   git clone https://github.com/yourusername/request-helper.git
+   cd request-helper
+   ```
 
-### 在Chrome中加载插件
-1. 打开 Chrome 浏览器
-2. 访问 `chrome://extensions/`
-3. 开启右上角的"开发者模式"
-4. 点击"加载已解压的扩展程序"
-5. 选择项目的 `dist` 目录
+2. Build the extension:
 
-## 📋 开发计划
+   ```bash
+   npm run build
+   ```
 
-- [x] 项目初始化
-- [x] 基础架构搭建
-- [x] 实现静默抓包核心功能
-- [x] URL过滤配置
-- [x] 请求/响应数据完整捕获
-- [x] 基础UI界面
-- [x] 数据存储与管理
-- [x] 请求查看器
-- [x] 搜索和过滤功能
-- [x] 数据导出功能
-- [ ] 响应体完整捕获（Content Script方案）
-- [ ] 高级功能扩展（重放、修改等）
+3. Load in Chrome:
+   - Open `chrome://extensions/`
+   - Enable "Developer mode"
+   - Click "Load unpacked"
+   - Select the `dist/` folder
 
-## 🤝 贡献指南
+## 📖 Usage
 
-欢迎提交Issue和Pull Request！
+### Quick Start
 
-## 📄 许可证
+1. Click the RequestHelper icon in Chrome toolbar
+2. Click "Start Capture" to begin capturing requests
+3. Browse any website or trigger network requests
+4. Click "View Requests" to inspect captured data
+5. Click "Stop Capture" when done
 
-MIT License
+### Filtering Requests
 
-## 📮 联系方式
+In the **Settings** page, you can configure:
 
-如有问题或建议，欢迎提Issue讨论。
+- **URL Patterns**: Only capture URLs matching patterns (e.g., `*api.example.com*`, `*/graphql`)
+- **Excluded Patterns**: Exclude URLs matching patterns
+- **Static Resources**: Toggle capturing of images, CSS, JS, fonts, and media files
+
+### Viewing Request Details
+
+The **Request Viewer** provides:
+
+- Search bar for URL filtering
+- Method and status code filters
+- Detailed request/response inspection
+- JSON syntax highlighting
+- Export functionality
+
+## 🤝 Contributing
+
+Contributions are welcome! Please feel free to submit a Pull Request.
+
+### Guidelines
+
+- Follow existing code style and patterns
+- Run `npm run build` after making changes
+- Test manually using test pages
+- Update relevant documentation
+
+## 📄 License
+
+MIT License - see LICENSE file for details
+
+## 🙏 Acknowledgments
+
+Built with modern Chrome Extension Manifest V3 APIs and best practices for network request interception.
+
+## 📮 Support
+
+If you encounter any issues or have questions, please [open an issue](https://github.com/yourusername/request-helper/issues) on GitHub.
 
 ---
 
-**注意**: 本项目仅供开发和学习使用，请遵守相关法律法规，不要用于非法用途。
+**Note**: This extension requires Chrome 88+ for full Manifest V3 support.

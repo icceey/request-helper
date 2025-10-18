@@ -1,0 +1,177 @@
+# RequestHelper - AI Coding Agent Instructions
+
+## Project Overview
+RequestHelper is a Chrome Manifest V3 extension for silent network request capturing and analysis. It uses a **dual-layer interception architecture** to bypass webRequest API limitations and capture complete request/response bodies.
+
+## Critical Architecture Patterns
+
+### 1. Dual-Layer Network Interception
+The core challenge: **webRequest API cannot capture response bodies in MV3**. Our solution:
+
+```
+Page Request → interceptor-injected.js (MAIN world) → CustomEvent 
+  → interceptor.js (content script) → chrome.runtime.sendMessage 
+  → background/capture.js → storage.js → viewer updates
+```
+
+**Key files:**
+- `content/interceptor-injected.js`: Runs in page context, intercepts native XHR/Fetch, has full data access
+- `content/interceptor.js`: Injects the above script, bridges CustomEvent → chrome.runtime
+- `background/capture.js`: Merges data from webRequest API + content script using time-window matching (5s)
+
+### 2. Module System & Chrome Extension APIs
+- **All background scripts use ES6 modules** (`"type": "module"` in manifest.json)
+- Import paths are relative: `import { StorageManager } from './storage.js'`
+- UI scripts (popup, viewer, options) use `<script type="module">` in HTML
+- Content scripts must be vanilla JS (no imports) or use bundlers
+
+### 3. Storage Architecture
+```javascript
+// Storage keys in background/storage.js
+STORAGE_KEY = 'requests'  // Array of captured requests
+CONFIG_KEY = 'config'     // User configuration
+MAX_REQUESTS = 1000       // Default limit
+```
+
+**Critical pattern:** Always use `chrome.storage.local`, never sync (large data volumes)
+- Request matching uses `pendingRequests` Map with request IDs as keys
+- Notifications via `chrome.runtime.sendMessage({ type: 'REQUESTS_UPDATED' })`
+
+### 4. URL Filtering Pattern
+Uses wildcard patterns in `utils/filter.js`:
+```javascript
+URLFilter.matches(url, patterns) // patterns like ["*api.example.com*", "*/graphql"]
+```
+Pattern conversion: `*` → `.*` regex, special chars escaped
+
+## Development Workflows
+
+### Build & Testing
+```bash
+npm run build          # Copies files to dist/
+# OR directly:
+node scripts/build.js  # Simple file copy, no compilation
+```
+
+**CRITICAL: Always build after changes**
+- Run `node scripts/build.js` after EVERY code modification
+- The extension loads from `dist/`, not source files
+- Build failures must be fixed before considering work complete
+
+**Manual testing:**
+1. Load `dist/` folder in `chrome://extensions/` (developer mode)
+2. Open `test/test-page.html` in browser
+3. Click test buttons to trigger XHR/Fetch requests
+4. Check popup for capture status, viewer for details
+
+**Debugging:**
+- Background logs: `chrome://extensions/` → Inspect service worker
+- Content script logs: Page DevTools console (filter by "RequestHelper")
+- Page interceptor logs: Look for emoji prefixes (🔍, ✅, ❌)
+
+### Key Commands
+No test suite exists. Testing is manual via:
+- `test/test-page.html`: XHR/Fetch request triggers
+- `test/status-filter-demo.html`: UI feature demos
+- Browser DevTools network tab comparison
+
+## Critical Rules
+
+### 1. Documentation Policy
+**NEVER generate summary or change documentation files**
+- Do NOT create files like `SUMMARY.md`, `CHANGES.md`, `UPDATE.md`, etc.
+- Do NOT ask if documentation is needed
+- Do NOT offer to document changes made
+- Focus solely on code implementation
+
+### 2. Build Requirement
+**MUST run build after every change**
+- Execute `node scripts/build.js` immediately after modifying any file
+- Verify build completes successfully before considering work done
+- Extension only loads from `dist/` directory, not source files
+
+## Project-Specific Conventions
+
+### 1. Request Data Structure
+```javascript
+{
+  id: `${timestamp}-${Math.random()}`,
+  url: string,
+  method: 'GET'|'POST'|...,
+  statusCode: number,
+  timestamp: number,
+  duration: number,
+  requestHeaders: Object,
+  requestBody: Object,
+  responseHeaders: Object,
+  responseBody: { type, data, parseError? },
+  source: 'webRequest'|'contentScript'|'merged',
+  // ... more fields in background/capture.js
+}
+```
+
+### 2. Message Protocol
+All `chrome.runtime.sendMessage` calls use `{ type: string, ...data }` pattern:
+```javascript
+// Types in background/service-worker.js handleMessage():
+'GET_STATUS', 'START_CAPTURE', 'STOP_CAPTURE', 
+'GET_REQUESTS', 'CLEAR_REQUESTS', 'EXPORT_REQUESTS',
+'GET_CONFIG', 'SAVE_CONFIG', 'GET_STATS',
+'RESPONSE_BODY_CAPTURED'  // From content script
+```
+
+### 3. UI State Management
+- No framework used - vanilla JS with manual DOM updates
+- Viewer uses `allRequests`, `filteredRequests`, `selectedRequest` globals
+- Filtering in `handleFilter()` applies URL search, method, and status code filters
+- Status code filter uses `Set` for O(1) lookups: `selectedStatusCodes`
+
+### 4. Style Patterns
+- Status code colors: `.status-2xx` (green), `.status-3xx` (yellow), `.status-4xx` (orange), `.status-5xx` (red)
+- Method badges: `.method-GET`, `.method-POST`, etc. with color coding
+- Toast notifications: `.toast.success`, `.toast.error` with opacity transitions
+
+## Common Tasks
+
+### Adding New Filter to Viewer
+1. Add filter UI in `viewer/viewer.html` toolbar
+2. Add state variable in `viewer/viewer.js` (like `selectedStatusCodes`)
+3. Update `handleFilter()` to apply new filter condition
+4. Update `loadRequests()` or similar to refresh filter options
+5. Add CSS for new UI elements in `viewer/viewer.css`
+See recent status filter addition as reference.
+
+### Capturing New Data Fields
+1. Add field capture in `background/capture.js` onBeforeRequest/onCompleted hooks
+2. Add field capture in `content/interceptor-injected.js` for XHR/Fetch data
+3. Update merge logic in `RequestCapture.handleResponseBodyCapture()`
+4. Update viewer display in `viewer/viewer.js` renderRequestDetails()
+
+### Adding Configuration Options
+1. Add field to default config in `background/storage.js`
+2. Add UI control in `options/options.html`
+3. Add save/load logic in `options/options.js`
+4. Use config in relevant module (usually `background/capture.js`)
+
+## Known Limitations & Gotchas
+
+- **webRequest listeners cannot be removed** once registered - use `isCapturing` flag instead
+- **Content script injection timing**: Use `"run_at": "document_start"` to catch early requests
+- **Response body size limit**: 5MB default in interceptor, truncate to prevent memory issues
+- **Service worker lifecycle**: May terminate after 30s idle, use `chrome.storage` not in-memory state
+- **CORS/CSP restrictions**: Page-injected script bypasses these, content script doesn't
+- **Matching algorithm**: 5-second time window + URL + method matching (see `RequestCapture.findMatchingRequest()`)
+
+## File Organization
+```
+background/     - Service worker, storage, capture logic
+content/        - Interceptor scripts (injected + bridge)
+popup/          - Quick control panel UI
+viewer/         - Main request inspection interface
+options/        - Settings configuration page
+utils/          - Shared utilities (filter, formatter)
+test/           - Manual test pages (no automated tests)
+scripts/        - Build tooling
+```
+
+When modifying UI files, remember each has its own CSS file and no shared component system.

@@ -1,0 +1,262 @@
+{
+  "extName": {
+    "message": "RequestHelper",
+    "description": "Extension name"
+  },
+  "extDescription": {
+    "message": "A powerful Chrome extension for silent network request capturing and analysis",
+    "description": "Extension description"
+  },
+  
+  "ready": {
+    "message": "Ready",
+    "description": "Status ready"
+  },
+  "capturing": {
+    "message": "Capturing",
+    "description": "Status capturing"
+  },
+  "startCapture": {
+    "message": "Start Capture",
+    "description": "Button to start capture"
+  },
+  "stopCapture": {
+    "message": "Stop Capture",
+    "description": "Button to stop capture"
+  },
+  "capturedRequests": {
+    "message": "Captured Requests",
+    "description": "Label for captured requests count"
+  },
+  "viewRequests": {
+    "message": "View Requests",
+    "description": "Button to view requests"
+  },
+  "clearData": {
+    "message": "Clear Data",
+    "description": "Button to clear data"
+  },
+  "settings": {
+    "message": "Settings",
+    "description": "Settings button"
+  },
+  
+  "requestViewer": {
+    "message": "Request Viewer",
+    "description": "Request viewer page title"
+  },
+  "searchUrl": {
+    "message": "Search URL...",
+    "description": "Search input placeholder"
+  },
+  "allMethods": {
+    "message": "All Methods",
+    "description": "Filter option for all methods"
+  },
+  "statusCode": {
+    "message": "Status Code",
+    "description": "Status code filter button"
+  },
+  "selectStatusCode": {
+    "message": "Select Status Code",
+    "description": "Status code dropdown header"
+  },
+  "clear": {
+    "message": "Clear",
+    "description": "Clear button"
+  },
+  "slowRequests": {
+    "message": "Slow Requests",
+    "description": "Slow requests filter button"
+  },
+  "slowRequestsTooltip": {
+    "message": "Show only requests over 1 second",
+    "description": "Tooltip for slow requests button"
+  },
+  "noCapturedRequests": {
+    "message": "No captured requests",
+    "description": "Empty state message"
+  },
+  "startCaptureHint": {
+    "message": "Click \"Start Capture\" in popup to begin capturing requests",
+    "description": "Hint for starting capture"
+  },
+  "selectRequest": {
+    "message": "Select a request to view details",
+    "description": "Empty state for request details"
+  },
+  
+  "requestHelperSettings": {
+    "message": "RequestHelper Settings",
+    "description": "Settings page title"
+  },
+  "basicSettings": {
+    "message": "Basic Settings",
+    "description": "Basic settings section"
+  },
+  "autoStartCapture": {
+    "message": "Auto-start capture",
+    "description": "Auto start capture option"
+  },
+  "captureStaticResources": {
+    "message": "Capture static resources (images, CSS, JS, fonts, etc.)",
+    "description": "Capture static resources option"
+  },
+  "urlFilterRules": {
+    "message": "URL Filter Rules",
+    "description": "URL filter section"
+  },
+  "urlFilterDescription": {
+    "message": "Configure URL patterns to capture, supports wildcard *",
+    "description": "URL filter description"
+  },
+  "urlPatternsPlaceholder": {
+    "message": "One URL pattern per line, for example:\nhttps://api.example.com/*\n*://*/api/*",
+    "description": "URL patterns textarea placeholder"
+  },
+  "storageSettings": {
+    "message": "Storage Settings",
+    "description": "Storage settings section"
+  },
+  "maxStoredRequests": {
+    "message": "Maximum stored requests:",
+    "description": "Max requests label"
+  },
+  "saveSettings": {
+    "message": "Save Settings",
+    "description": "Save settings button"
+  },
+  "resetSettings": {
+    "message": "Reset to Default",
+    "description": "Reset settings button"
+  },
+  "settingsSaved": {
+    "message": "Settings saved successfully!",
+    "description": "Settings saved message"
+  },
+  "settingsReset": {
+    "message": "Settings have been reset to default",
+    "description": "Settings reset message"
+  },
+  
+  "general": {
+    "message": "General",
+    "description": "General tab in request details"
+  },
+  "requestHeaders": {
+    "message": "Request Headers",
+    "description": "Request headers tab"
+  },
+  "requestBody": {
+    "message": "Request Body",
+    "description": "Request body tab"
+  },
+  "responseHeaders": {
+    "message": "Response Headers",
+    "description": "Response headers tab"
+  },
+  "responseBody": {
+    "message": "Response Body",
+    "description": "Response body tab"
+  },
+  "url": {
+    "message": "URL",
+    "description": "URL label"
+  },
+  "method": {
+    "message": "Method",
+    "description": "Method label"
+  },
+  "status": {
+    "message": "Status",
+    "description": "Status label"
+  },
+  "duration": {
+    "message": "Duration",
+    "description": "Duration label"
+  },
+  "timestamp": {
+    "message": "Timestamp",
+    "description": "Timestamp label"
+  },
+  "size": {
+    "message": "Size",
+    "description": "Size label"
+  },
+  "type": {
+    "message": "Type",
+    "description": "Type label"
+  },
+  "source": {
+    "message": "Source",
+    "description": "Source label"
+  },
+  
+  "confirmClear": {
+    "message": "Are you sure you want to clear all captured requests?",
+    "description": "Confirmation message for clearing data"
+  },
+  "dataClearedSuccess": {
+    "message": "Data cleared successfully",
+    "description": "Success message after clearing data"
+  },
+  "copySuccess": {
+    "message": "Copied to clipboard",
+    "description": "Success message after copying"
+  },
+  "copyFailed": {
+    "message": "Failed to copy",
+    "description": "Error message when copy fails"
+  },
+  
+  "failedToLoadConfig": {
+    "message": "Failed to load configuration",
+    "description": "Error message when loading config fails"
+  },
+  "pleaseAddUrlPattern": {
+    "message": "Please add at least one URL pattern",
+    "description": "Validation message for URL patterns"
+  },
+  "maxRequestsRange": {
+    "message": "Maximum requests must be between 10-10000",
+    "description": "Validation message for max requests"
+  },
+  "saveFailed": {
+    "message": "Save failed",
+    "description": "Error message when save fails"
+  },
+  "defaultSettingsRestored": {
+    "message": "Default settings restored, click \"Save Settings\" to apply",
+    "description": "Message when settings are reset"
+  },
+  
+  "noMatchingRequests": {
+    "message": "No matching requests found",
+    "description": "Empty state when no requests match filter"
+  },
+  "noStatusCodes": {
+    "message": "No status codes",
+    "description": "Empty state when no status codes available"
+  },
+  
+  "none": {
+    "message": "None",
+    "description": "Empty data indicator"
+  },
+  "fromCache": {
+    "message": "From Cache",
+    "description": "Cached request indicator"
+  },
+  "formatted": {
+    "message": "Formatted",
+    "description": "Formatted view tab"
+  },
+  "raw": {
+    "message": "Raw",
+    "description": "Raw view tab"
+  },
+  "preview": {
+    "message": "Preview",
+    "description": "Preview tab"
+  }
+}

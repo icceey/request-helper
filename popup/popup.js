@@ -2,6 +2,8 @@
  * RequestHelper - Popup UI
  */
 
+import { getMessage, translatePage } from '../utils/i18n.js';
+
 // DOM 元素
 const statusText = document.getElementById('status-text');
 const toggleBtn = document.getElementById('toggle-btn');
@@ -17,6 +19,9 @@ let currentStats = null;
 // 初始化
 async function init() {
   console.log('Popup initialized');
+  
+  // 翻译页面
+  translatePage();
   
   // 从后台获取当前状态
   await updateStatus();
@@ -63,14 +68,14 @@ async function updateStats() {
 // 更新UI
 async function updateUI() {
   if (isCapturing) {
-    statusText.textContent = '正在捕获';
+    statusText.textContent = getMessage('capturing');
     statusText.style.color = '#34a853';
-    toggleBtn.textContent = '停止捕获';
+    toggleBtn.textContent = getMessage('stopCapture');
     toggleBtn.classList.add('active');
   } else {
-    statusText.textContent = '已停止';
+    statusText.textContent = getMessage('ready');
     statusText.style.color = '#666';
-    toggleBtn.textContent = '启动捕获';
+    toggleBtn.textContent = getMessage('startCapture');
     toggleBtn.classList.remove('active');
   }
 }
@@ -89,7 +94,7 @@ async function handleToggle() {
     }
   } catch (error) {
     console.error('Failed to toggle capture:', error);
-    alert('操作失败，请查看控制台');
+    alert('Operation failed, please check console');
   }
 }
 
@@ -137,11 +142,11 @@ async function handleClear() {
     
     if (response.success) {
       requestCount.textContent = '0';
-      showToast('数据已清空', 'success');
+      showToast(getMessage('dataClearedSuccess'), 'success');
     }
   } catch (error) {
     console.error('Failed to clear:', error);
-    showToast('清空失败', 'error');
+    showToast(getMessage('copyFailed'), 'error');
   }
 }
 

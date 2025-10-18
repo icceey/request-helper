@@ -1,8 +1,9 @@
 {
   "manifest_version": 3,
-  "name": "RequestHelper",
+  "name": "__MSG_extName__",
   "version": "0.1.0",
-  "description": "A powerful Chrome extension for silent network request capturing and analysis",
+  "description": "__MSG_extDescription__",
+  "default_locale": "en",
   "permissions": [
     "storage",
     "webRequest",

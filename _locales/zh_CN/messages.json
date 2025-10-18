@@ -1,0 +1,262 @@
+{
+  "extName": {
+    "message": "RequestHelper",
+    "description": "扩展名称"
+  },
+  "extDescription": {
+    "message": "强大的 Chrome 扩展，用于静默网络请求捕获和分析",
+    "description": "扩展描述"
+  },
+  
+  "ready": {
+    "message": "已就绪",
+    "description": "状态就绪"
+  },
+  "capturing": {
+    "message": "捕获中",
+    "description": "状态捕获中"
+  },
+  "startCapture": {
+    "message": "开始捕获",
+    "description": "开始捕获按钮"
+  },
+  "stopCapture": {
+    "message": "停止捕获",
+    "description": "停止捕获按钮"
+  },
+  "capturedRequests": {
+    "message": "已捕获请求",
+    "description": "已捕获请求计数标签"
+  },
+  "viewRequests": {
+    "message": "查看请求",
+    "description": "查看请求按钮"
+  },
+  "clearData": {
+    "message": "清空数据",
+    "description": "清空数据按钮"
+  },
+  "settings": {
+    "message": "设置",
+    "description": "设置按钮"
+  },
+  
+  "requestViewer": {
+    "message": "请求查看器",
+    "description": "请求查看器页面标题"
+  },
+  "searchUrl": {
+    "message": "搜索 URL...",
+    "description": "搜索框占位符"
+  },
+  "allMethods": {
+    "message": "全部方法",
+    "description": "全部方法筛选选项"
+  },
+  "statusCode": {
+    "message": "状态码",
+    "description": "状态码筛选按钮"
+  },
+  "selectStatusCode": {
+    "message": "选择状态码",
+    "description": "状态码下拉菜单标题"
+  },
+  "clear": {
+    "message": "清空",
+    "description": "清空按钮"
+  },
+  "slowRequests": {
+    "message": "慢请求",
+    "description": "慢请求筛选按钮"
+  },
+  "slowRequestsTooltip": {
+    "message": "仅显示超过 1 秒的请求",
+    "description": "慢请求按钮提示"
+  },
+  "noCapturedRequests": {
+    "message": "暂无捕获的请求",
+    "description": "空状态消息"
+  },
+  "startCaptureHint": {
+    "message": "在弹出窗口中点击「开始捕获」以开始捕获请求",
+    "description": "开始捕获的提示"
+  },
+  "selectRequest": {
+    "message": "选择一个请求以查看详情",
+    "description": "请求详情空状态"
+  },
+  
+  "requestHelperSettings": {
+    "message": "RequestHelper 设置",
+    "description": "设置页面标题"
+  },
+  "basicSettings": {
+    "message": "基础设置",
+    "description": "基础设置部分"
+  },
+  "autoStartCapture": {
+    "message": "自动开始捕获",
+    "description": "自动开始捕获选项"
+  },
+  "captureStaticResources": {
+    "message": "捕获静态资源（图片、CSS、JS、字体等）",
+    "description": "捕获静态资源选项"
+  },
+  "urlFilterRules": {
+    "message": "URL 过滤规则",
+    "description": "URL 过滤部分"
+  },
+  "urlFilterDescription": {
+    "message": "配置要捕获的 URL 模式，支持通配符 *",
+    "description": "URL 过滤描述"
+  },
+  "urlPatternsPlaceholder": {
+    "message": "每行一个 URL 模式，例如：\nhttps://api.example.com/*\n*://*/api/*",
+    "description": "URL 模式文本框占位符"
+  },
+  "storageSettings": {
+    "message": "存储设置",
+    "description": "存储设置部分"
+  },
+  "maxStoredRequests": {
+    "message": "最大存储请求数：",
+    "description": "最大请求数标签"
+  },
+  "saveSettings": {
+    "message": "保存设置",
+    "description": "保存设置按钮"
+  },
+  "resetSettings": {
+    "message": "恢复默认",
+    "description": "重置设置按钮"
+  },
+  "settingsSaved": {
+    "message": "设置保存成功！",
+    "description": "设置保存消息"
+  },
+  "settingsReset": {
+    "message": "设置已恢复为默认值",
+    "description": "设置重置消息"
+  },
+  
+  "general": {
+    "message": "概览",
+    "description": "请求详情中的概览标签"
+  },
+  "requestHeaders": {
+    "message": "请求头",
+    "description": "请求头标签"
+  },
+  "requestBody": {
+    "message": "请求体",
+    "description": "请求体标签"
+  },
+  "responseHeaders": {
+    "message": "响应头",
+    "description": "响应头标签"
+  },
+  "responseBody": {
+    "message": "响应体",
+    "description": "响应体标签"
+  },
+  "url": {
+    "message": "URL",
+    "description": "URL 标签"
+  },
+  "method": {
+    "message": "方法",
+    "description": "方法标签"
+  },
+  "status": {
+    "message": "状态",
+    "description": "状态标签"
+  },
+  "duration": {
+    "message": "耗时",
+    "description": "耗时标签"
+  },
+  "timestamp": {
+    "message": "时间戳",
+    "description": "时间戳标签"
+  },
+  "size": {
+    "message": "大小",
+    "description": "大小标签"
+  },
+  "type": {
+    "message": "类型",
+    "description": "类型标签"
+  },
+  "source": {
+    "message": "来源",
+    "description": "来源标签"
+  },
+  
+  "confirmClear": {
+    "message": "确定要清除所有已捕获的请求吗？",
+    "description": "清除数据确认消息"
+  },
+  "dataClearedSuccess": {
+    "message": "数据已清空",
+    "description": "清空数据成功消息"
+  },
+  "copySuccess": {
+    "message": "已复制到剪贴板",
+    "description": "复制成功消息"
+  },
+  "copyFailed": {
+    "message": "复制失败",
+    "description": "复制失败错误消息"
+  },
+  
+  "failedToLoadConfig": {
+    "message": "加载配置失败",
+    "description": "加载配置失败时的错误消息"
+  },
+  "pleaseAddUrlPattern": {
+    "message": "请至少添加一个 URL 模式",
+    "description": "URL 模式验证消息"
+  },
+  "maxRequestsRange": {
+    "message": "最大请求数必须在 10-10000 之间",
+    "description": "最大请求数验证消息"
+  },
+  "saveFailed": {
+    "message": "保存失败",
+    "description": "保存失败错误消息"
+  },
+  "defaultSettingsRestored": {
+    "message": "默认设置已恢复，点击「保存设置」以应用",
+    "description": "设置重置时的消息"
+  },
+  
+  "noMatchingRequests": {
+    "message": "未找到匹配的请求",
+    "description": "没有请求匹配筛选条件时的空状态"
+  },
+  "noStatusCodes": {
+    "message": "暂无状态码",
+    "description": "没有可用状态码时的空状态"
+  },
+  
+  "none": {
+    "message": "无",
+    "description": "空数据指示器"
+  },
+  "fromCache": {
+    "message": "来自缓存",
+    "description": "缓存请求指示器"
+  },
+  "formatted": {
+    "message": "格式化内容",
+    "description": "格式化视图标签"
+  },
+  "raw": {
+    "message": "原始内容",
+    "description": "原始视图标签"
+  },
+  "preview": {
+    "message": "预览",
+    "description": "预览标签"
+  }
+}

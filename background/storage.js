@@ -217,7 +217,8 @@ export class StorageManager {
         urlPatterns: ['*://*/*'],
         enabled: false,
         autoStart: false,
-        maxRequests: this.MAX_REQUESTS
+        maxRequests: this.MAX_REQUESTS,
+        captureStaticResources: false // 默认不捕获静态资源
       };
       console.log('Config loaded:', config);
       return config;
@@ -227,7 +228,8 @@ export class StorageManager {
         urlPatterns: ['*://*/*'],
         enabled: false,
         autoStart: false,
-        maxRequests: this.MAX_REQUESTS
+        maxRequests: this.MAX_REQUESTS,
+        captureStaticResources: false // 默认不捕获静态资源
       };
     }
   }
@@ -243,36 +245,5 @@ export class StorageManager {
     }).catch(() => {
       // 忽略错误（可能没有接收者）
     });
-  }
-
-  /**
-   * 导出请求数据为JSON
-   */
-  static async exportRequests() {
-    try {
-      const requests = await this.getRequests();
-      return JSON.stringify(requests, null, 2);
-    } catch (error) {
-      console.error('Failed to export requests:', error);
-      return null;
-    }
-  }
-
-  /**
-   * 导入请求数据
-   */
-  static async importRequests(jsonData) {
-    try {
-      const requests = JSON.parse(jsonData);
-      await chrome.storage.local.set({
-        [this.STORAGE_KEY]: requests
-      });
-      console.log('Requests imported:', requests.length);
-      this.notifyUpdate(requests.length);
-      return true;
-    } catch (error) {
-      console.error('Failed to import requests:', error);
-      return false;
-    }
   }
 }
