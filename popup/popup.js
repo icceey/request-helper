@@ -12,32 +12,64 @@ const settingsBtn = document.getElementById('settings-btn');
 
 // 状态
 let isCapturing = false;
+let currentStats = null;
 
 // 初始化
 async function init() {
   console.log('Popup initialized');
   
-  // TODO: 从后台获取当前状态
-  await updateUI();
+  // 从后台获取当前状态
+  await updateStatus();
+  await updateStats();
   
   // 绑定事件
   toggleBtn.addEventListener('click', handleToggle);
   viewRequestsBtn.addEventListener('click', handleViewRequests);
   clearBtn.addEventListener('click', handleClear);
   settingsBtn.addEventListener('click', handleSettings);
+
+  // 监听后台消息
+  chrome.runtime.onMessage.addListener(handleBackgroundMessage);
+}
+
+// 从后台获取状态
+async function updateStatus() {
+  try {
+    const response = await chrome.runtime.sendMessage({ type: 'GET_STATUS' });
+    
+    if (response.success) {
+      isCapturing = response.capturing;
+      await updateUI();
+    }
+  } catch (error) {
+    console.error('Failed to get status:', error);
+  }
+}
+
+// 获取统计信息
+async function updateStats() {
+  try {
+    const response = await chrome.runtime.sendMessage({ type: 'GET_STATS' });
+    
+    if (response.success) {
+      currentStats = response.stats;
+      requestCount.textContent = response.stats.total || 0;
+    }
+  } catch (error) {
+    console.error('Failed to get stats:', error);
+  }
 }
 
 // 更新UI
 async function updateUI() {
-  // TODO: 实现UI更新逻辑
-  console.log('Updating UI');
-  
   if (isCapturing) {
     statusText.textContent = '正在捕获';
+    statusText.style.color = '#34a853';
     toggleBtn.textContent = '停止捕获';
     toggleBtn.classList.add('active');
   } else {
-    statusText.textContent = '准备就绪';
+    statusText.textContent = '已停止';
+    statusText.style.color = '#666';
     toggleBtn.textContent = '启动捕获';
     toggleBtn.classList.remove('active');
   }
@@ -46,30 +78,50 @@ async function updateUI() {
 // 切换捕获状态
 async function handleToggle() {
   console.log('Toggle capture');
-  isCapturing = !isCapturing;
   
-  // TODO: 发送消息到后台
-  chrome.runtime.sendMessage({
-    type: isCapturing ? 'START_CAPTURE' : 'STOP_CAPTURE'
-  });
-  
-  await updateUI();
+  try {
+    const messageType = isCapturing ? 'STOP_CAPTURE' : 'START_CAPTURE';
+    const response = await chrome.runtime.sendMessage({ type: messageType });
+    
+    if (response.success) {
+      isCapturing = response.capturing;
+      await updateUI();
+    }
+  } catch (error) {
+    console.error('Failed to toggle capture:', error);
+    alert('操作失败，请查看控制台');
+  }
 }
 
 // 查看请求列表
 function handleViewRequests() {
   console.log('View requests');
-  // TODO: 打开请求列表页面
+  
+  // 创建一个新标签页显示请求列表
+  // TODO: 创建专门的请求列表页面
+  chrome.tabs.create({
+    url: chrome.runtime.getURL('viewer/viewer.html')
+  });
 }
 
 // 清空数据
 async function handleClear() {
   console.log('Clear data');
   
-  if (confirm('确定要清空所有捕获的数据吗？')) {
-    // TODO: 发送清空消息到后台
-    chrome.runtime.sendMessage({ type: 'CLEAR_REQUESTS' });
-    requestCount.textContent = '0';
+  if (!confirm('确定要清空所有捕获的数据吗？')) {
+    return;
+  }
+
+  try {
+    const response = await chrome.runtime.sendMessage({ type: 'CLEAR_REQUESTS' });
+    
+    if (response.success) {
+      requestCount.textContent = '0';
+      alert('数据已清空');
+    }
+  } catch (error) {
+    console.error('Failed to clear:', error);
+    alert('清空失败');
   }
 }
 
@@ -77,6 +129,15 @@ async function handleClear() {
 function handleSettings() {
   console.log('Open settings');
   chrome.runtime.openOptionsPage();
+}
+
+// 处理后台消息
+function handleBackgroundMessage(message, sender, sendResponse) {
+  console.log('Message from background:', message);
+  
+  if (message.type === 'REQUESTS_UPDATED') {
+    requestCount.textContent = message.count;
+  }
 }
 
 // 页面加载时初始化

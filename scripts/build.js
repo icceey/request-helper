@@ -16,7 +16,8 @@ const FILES_TO_COPY = [
   'popup',
   'options',
   'utils',
-  'icons'
+  'icons',
+  'viewer'
 ];
 
 // 清理dist目录

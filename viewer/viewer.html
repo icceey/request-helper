@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>RequestHelper - 请求查看器</title>
+  <link rel="stylesheet" href="viewer.css">
+</head>
+<body>
+  <div class="container">
+    <header>
+      <h1>请求查看器</h1>
+      <div class="toolbar">
+        <input type="text" id="search-input" placeholder="搜索URL...">
+        <select id="method-filter">
+          <option value="">所有方法</option>
+          <option value="GET">GET</option>
+          <option value="POST">POST</option>
+          <option value="PUT">PUT</option>
+          <option value="DELETE">DELETE</option>
+          <option value="PATCH">PATCH</option>
+        </select>
+        <button id="export-btn" class="btn">导出</button>
+        <button id="clear-btn" class="btn btn-danger">清空</button>
+      </div>
+    </header>
+
+    <main>
+      <div class="requests-container">
+        <div class="requests-list" id="requests-list">
+          <div class="empty-state">
+            <p>暂无捕获的请求</p>
+            <p class="hint">在popup中点击"启动捕获"开始捕获请求</p>
+          </div>
+        </div>
+        
+        <div class="request-details" id="request-details">
+          <div class="empty-state">
+            <p>选择一个请求查看详情</p>
+          </div>
+        </div>
+      </div>
+    </main>
+  </div>
+
+  <script src="viewer.js" type="module"></script>
+</body>
+</html>
