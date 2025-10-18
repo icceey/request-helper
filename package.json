@@ -1,0 +1,19 @@
+{
+  "name": "request-helper",
+  "version": "0.1.0",
+  "description": "A powerful Chrome extension for silent network request capturing and analysis",
+  "scripts": {
+    "dev": "npm run build",
+    "build": "node scripts/build.js",
+    "watch": "node scripts/build.js --watch"
+  },
+  "keywords": [
+    "chrome-extension",
+    "network",
+    "debugging",
+    "devtools"
+  ],
+  "author": "",
+  "license": "MIT",
+  "devDependencies": {}
+}

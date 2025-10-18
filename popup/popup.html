@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>RequestHelper</title>
+  <link rel="stylesheet" href="popup.css">
+</head>
+<body>
+  <div class="container">
+    <header>
+      <h1>RequestHelper</h1>
+      <div class="status">
+        <span id="status-text">准备就绪</span>
+        <button id="toggle-btn" class="btn-primary">启动捕获</button>
+      </div>
+    </header>
+
+    <main>
+      <section class="stats">
+        <div class="stat-item">
+          <span class="stat-label">捕获请求数</span>
+          <span class="stat-value" id="request-count">0</span>
+        </div>
+      </section>
+
+      <section class="actions">
+        <button id="view-requests-btn" class="btn">查看请求</button>
+        <button id="clear-btn" class="btn">清空数据</button>
+        <button id="settings-btn" class="btn">设置</button>
+      </section>
+    </main>
+  </div>
+
+  <script src="popup.js" type="module"></script>
+</body>
+</html>
