@@ -15,6 +15,7 @@ const settingsBtn = document.getElementById('settings-btn');
 // 状态
 let isCapturing = false;
 let currentStats = null;
+let enabledRulesCount = 0;
 
 // 初始化
 async function init() {
@@ -44,6 +45,7 @@ async function updateStatus() {
     
     if (response.success) {
       isCapturing = response.capturing;
+      enabledRulesCount = response.enabledRulesCount || 0;
       await updateUI();
     }
   } catch (error) {
@@ -68,15 +70,23 @@ async function updateStats() {
 // 更新UI
 async function updateUI() {
   if (isCapturing) {
-    statusText.textContent = getMessage('capturing');
+    statusText.textContent = `${enabledRulesCount} ${getMessage('rulesCapturing')}`;
     statusText.style.color = '#34a853';
     toggleBtn.textContent = getMessage('stopCapture');
     toggleBtn.classList.add('active');
+    toggleBtn.disabled = false;
   } else {
-    statusText.textContent = getMessage('ready');
+    statusText.textContent = `${enabledRulesCount} ${getMessage('rulesReady')}`;
     statusText.style.color = '#666';
     toggleBtn.textContent = getMessage('startCapture');
     toggleBtn.classList.remove('active');
+    
+    // 如果没有启用的规则，禁用开始捕获按钮
+    if (enabledRulesCount === 0) {
+      toggleBtn.disabled = true;
+    } else {
+      toggleBtn.disabled = false;
+    }
   }
 }
 

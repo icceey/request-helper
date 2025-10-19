@@ -12,9 +12,17 @@
     "message": "已就绪",
     "description": "状态就绪"
   },
+  "rulesReady": {
+    "message": "条规则已就绪",
+    "description": "规则就绪状态"
+  },
   "capturing": {
     "message": "捕获中",
     "description": "状态捕获中"
+  },
+  "rulesCapturing": {
+    "message": "条规则捕获中",
+    "description": "规则捕获状态"
   },
   "startCapture": {
     "message": "开始捕获",
@@ -286,5 +294,134 @@
   "preview": {
     "message": "预览",
     "description": "预览标签"
+  },
+  
+  "captureRules": {
+    "message": "捕获规则",
+    "description": "捕获规则标签"
+  },
+  "captureRulesDescription": {
+    "message": "配置捕获规则以过滤和捕获网络请求。当没有定义规则时，将不会捕获任何内容。",
+    "description": "捕获规则描述"
+  },
+  "addRule": {
+    "message": "添加规则",
+    "description": "添加规则按钮"
+  },
+  "ruleName": {
+    "message": "规则名称",
+    "description": "规则名称标签"
+  },
+  "ruleType": {
+    "message": "规则类型",
+    "description": "规则类型标签"
+  },
+  "ruleCondition": {
+    "message": "匹配条件",
+    "description": "规则条件标签"
+  },
+  "ruleAction": {
+    "message": "触发动作",
+    "description": "规则动作标签"
+  },
+  "enabled": {
+    "message": "已启用",
+    "description": "已启用状态"
+  },
+  "disabled": {
+    "message": "已禁用",
+    "description": "已禁用状态"
+  },
+  "urlRegex": {
+    "message": "URL 正则",
+    "description": "URL 正则规则类型"
+  },
+  "urlRegexPlaceholder": {
+    "message": "例如：https://api\\.example\\.com/.*",
+    "description": "URL 正则占位符"
+  },
+  "capture": {
+    "message": "捕获",
+    "description": "捕获动作"
+  },
+  "actions": {
+    "message": "操作",
+    "description": "操作列"
+  },
+  "edit": {
+    "message": "编辑",
+    "description": "编辑按钮"
+  },
+  "delete": {
+    "message": "删除",
+    "description": "删除按钮"
+  },
+  "moveUp": {
+    "message": "上移",
+    "description": "上移按钮"
+  },
+  "moveDown": {
+    "message": "下移",
+    "description": "下移按钮"
+  },
+  "noRulesDefined": {
+    "message": "未定义捕获规则。点击「添加规则」创建一个。",
+    "description": "空规则消息"
+  },
+  "ruleNameRequired": {
+    "message": "规则名称不能为空",
+    "description": "规则名称验证"
+  },
+  "rulePatternRequired": {
+    "message": "规则模式不能为空",
+    "description": "规则模式验证"
+  },
+  "invalidRegexPattern": {
+    "message": "无效的正则表达式",
+    "description": "无效正则验证"
+  },
+  "ruleAdded": {
+    "message": "规则添加成功",
+    "description": "规则添加消息"
+  },
+  "ruleUpdated": {
+    "message": "规则更新成功",
+    "description": "规则更新消息"
+  },
+  "ruleDeleted": {
+    "message": "规则删除成功",
+    "description": "规则删除消息"
+  },
+  "confirmDeleteRule": {
+    "message": "确定要删除此规则吗？",
+    "description": "确认删除规则消息"
+  },
+  "matchedRule": {
+    "message": "匹配规则",
+    "description": "匹配规则标签"
+  },
+  "priority": {
+    "message": "优先级",
+    "description": "优先级标签"
+  },
+  "higherPriorityNote": {
+    "message": "规则按从上到下的顺序匹配。位置越靠前，优先级越高。",
+    "description": "优先级说明"
+  },
+  "cancel": {
+    "message": "取消",
+    "description": "取消按钮"
+  },
+  "save": {
+    "message": "保存",
+    "description": "保存按钮"
+  },
+  "editRule": {
+    "message": "编辑规则",
+    "description": "编辑规则对话框标题"
+  },
+  "addNewRule": {
+    "message": "添加新规则",
+    "description": "添加规则对话框标题"
   }
 }

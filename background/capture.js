@@ -11,14 +11,17 @@ export class RequestCapture {
   static isCapturing = false;
   static config = null;
   static pendingRequests = new Map(); // 存储进行中的请求
+  static captureRules = []; // 捕获规则列表
 
   /**
    * 开始捕获网络请求
    */
-  static startCapture(config) {
-    console.log('Starting capture with config:', config);
+  static async startCapture(config) {
     this.isCapturing = true;
     this.config = config;
+
+    // 加载捕获规则
+    this.captureRules = await StorageManager.getRules();
 
     // 注册webRequest监听器
     this.registerListeners();
@@ -28,7 +31,6 @@ export class RequestCapture {
    * 停止捕获
    */
   static stopCapture() {
-    console.log('Stopping capture');
     this.isCapturing = false;
     
     // 注意：webRequest监听器一旦注册就无法移除
@@ -77,13 +79,49 @@ export class RequestCapture {
   }
 
   /**
-   * 检查URL是否匹配过滤规则
+   * 检查URL是否匹配过滤规则（旧方法，保留兼容性）
    */
   static matchesFilter(url, patterns) {
     if (!patterns || patterns.length === 0) {
       return true;
     }
     return URLFilter.matches(url, patterns);
+  }
+
+  /**
+   * 检查URL是否匹配捕获规则
+   * @returns {Object|null} 返回匹配的规则，如果没有匹配返回null
+   */
+  static matchesCaptureRules(url, method = 'GET') {
+    // 如果没有规则，不捕获任何内容
+    if (!this.captureRules || this.captureRules.length === 0) {
+      return null;
+    }
+
+    // 按照优先级（数组顺序）匹配规则
+    for (const rule of this.captureRules) {
+      // 跳过禁用的规则
+      if (!rule.enabled) {
+        continue;
+      }
+
+      // 根据规则类型进行匹配
+      if (rule.type === 'url-regex') {
+        try {
+          const regex = new RegExp(rule.condition.pattern);
+          if (regex.test(url)) {
+            return rule;
+          }
+        } catch (error) {
+          console.error(`Invalid regex pattern in rule ${rule.name}:`, error);
+        }
+      }
+      // 未来可以添加更多规则类型的匹配逻辑
+      // else if (rule.type === 'header') { ... }
+      // else if (rule.type === 'body') { ... }
+    }
+
+    return null;
   }
 
   /**
@@ -102,8 +140,9 @@ export class RequestCapture {
 
   /**
    * 检查是否应该捕获此请求
+   * @returns {Object|false} 返回匹配的规则对象，或false（不捕获）
    */
-  static shouldCapture(url, type) {
+  static shouldCapture(url, type, method = 'GET') {
     if (!this.isCapturing) {
       return false;
     }
@@ -118,16 +157,17 @@ export class RequestCapture {
       return false;
     }
 
-    // 检查URL过滤规则
-    const patterns = this.config?.urlPatterns || [];
-    return this.matchesFilter(url, patterns);
+    // 使用新的规则系统进行匹配
+    const matchedRule = this.matchesCaptureRules(url, method);
+    return matchedRule || false;
   }
 
   /**
    * 请求发送前（捕获请求体）
    */
   static onBeforeRequest(details) {
-    if (!this.shouldCapture(details.url, details.type)) {
+    const matchedRule = this.shouldCapture(details.url, details.type, details.method);
+    if (!matchedRule) {
       return;
     }
 
@@ -139,18 +179,23 @@ export class RequestCapture {
       timestamp: details.timeStamp,
       tabId: details.tabId,
       frameId: details.frameId,
-      requestBody: this.parseRequestBody(details.requestBody)
+      requestBody: this.parseRequestBody(details.requestBody),
+      matchedRule: {
+        id: matchedRule.id,
+        name: matchedRule.name
+      }
     };
 
     this.pendingRequests.set(details.requestId, requestData);
-    console.log('Request started:', details.requestId, details.url);
+    console.log('Request started:', details.requestId, details.url, 'Matched rule:', matchedRule.name);
   }
 
   /**
    * 请求发送时（捕获请求头）
    */
   static onSendHeaders(details) {
-    if (!this.shouldCapture(details.url, details.type)) {
+    const matchedRule = this.shouldCapture(details.url, details.type, details.method);
+    if (!matchedRule) {
       return;
     }
 
@@ -165,7 +210,8 @@ export class RequestCapture {
    * 响应头接收（捕获响应头）
    */
   static onHeadersReceived(details) {
-    if (!this.shouldCapture(details.url, details.type)) {
+    const matchedRule = this.shouldCapture(details.url, details.type, details.method);
+    if (!matchedRule) {
       return;
     }
 
@@ -182,7 +228,8 @@ export class RequestCapture {
    * 请求完成
    */
   static async onCompleted(details) {
-    if (!this.shouldCapture(details.url, details.type)) {
+    const matchedRule = this.shouldCapture(details.url, details.type, details.method);
+    if (!matchedRule) {
       return;
     }
 
@@ -211,7 +258,8 @@ export class RequestCapture {
    * 请求错误
    */
   static onError(details) {
-    if (!this.shouldCapture(details.url, details.type)) {
+    const matchedRule = this.shouldCapture(details.url, details.type, details.method);
+    if (!matchedRule) {
       return;
     }
 
@@ -325,8 +373,12 @@ export class RequestCapture {
       return;
     }
 
+    // 重新加载规则（防止规则在运行时被修改）
+    this.captureRules = await StorageManager.getRules();
+
     // 检查是否应该捕获此请求
-    if (!this.shouldCapture(capturedData.url)) {
+    const matchedRule = this.shouldCapture(capturedData.url, capturedData.type, capturedData.method);
+    if (!matchedRule) {
       return;
     }
 
@@ -364,7 +416,11 @@ export class RequestCapture {
         contentType: capturedData.contentType,
         duration: capturedData.duration,
         completed: true,
-        source: 'content-script'
+        source: 'content-script',
+        matchedRule: {
+          id: matchedRule.id,
+          name: matchedRule.name
+        }
       };
 
       await StorageManager.saveRequest(requestData);

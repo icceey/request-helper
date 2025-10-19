@@ -54,6 +54,16 @@ h1 {
   background: #1557b0;
 }
 
+.btn-primary:disabled {
+  background: #dadce0;
+  color: #9aa0a6;
+  cursor: not-allowed;
+}
+
+.btn-primary:disabled:hover {
+  background: #dadce0;
+}
+
 .btn-primary.active {
   background: #d93025;
 }
@@ -70,6 +80,14 @@ h1 {
   display: flex;
   justify-content: space-between;
   align-items: center;
+  gap: 12px;
+}
+
+.stat-info {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex: 1;
 }
 
 .stat-label {
@@ -103,6 +121,31 @@ h1 {
 .btn:hover {
   background: #f8f9fa;
   border-color: #1a73e8;
+}
+
+/* 图标按钮样式 */
+.btn-icon {
+  padding: 6px;
+  background: transparent;
+  color: #5f6368;
+  border: 1px solid transparent;
+  border-radius: 4px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s ease;
+}
+
+.btn-icon:hover {
+  background: #f8f9fa;
+  border-color: #dadce0;
+  color: #d93025;
+}
+
+.btn-icon svg {
+  width: 16px;
+  height: 16px;
 }
 
 /* Toast 提示样式 */

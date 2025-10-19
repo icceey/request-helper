@@ -3,9 +3,12 @@
  * 管理数据存储和读取
  */
 
+import { updateBadge, getCapturingStatus } from './service-worker.js';
+
 export class StorageManager {
   static STORAGE_KEY = 'requests';
   static CONFIG_KEY = 'config';
+  static RULES_KEY = 'captureRules';
   static MAX_REQUESTS = 1000;
 
   /**
@@ -238,6 +241,12 @@ export class StorageManager {
    * 通知UI更新
    */
   static notifyUpdate(count) {
+    // 更新角标
+    const isCapturing = getCapturingStatus();
+    updateBadge(isCapturing, count).catch(err => {
+      console.error('Failed to update badge in notifyUpdate:', err);
+    });
+    
     // 发送消息到所有连接的页面
     chrome.runtime.sendMessage({
       type: 'REQUESTS_UPDATED',
@@ -245,5 +254,91 @@ export class StorageManager {
     }).catch(() => {
       // 忽略错误（可能没有接收者）
     });
+  }
+
+  /**
+   * 保存捕获规则
+   */
+  static async saveRules(rules) {
+    try {
+      await chrome.storage.local.set({
+        [this.RULES_KEY]: rules
+      });
+      console.log('Capture rules saved:', rules);
+    } catch (error) {
+      console.error('Failed to save capture rules:', error);
+    }
+  }
+
+  /**
+   * 获取捕获规则
+   */
+  static async getRules() {
+    try {
+      const result = await chrome.storage.local.get(this.RULES_KEY);
+      const rules = result[this.RULES_KEY] || [];
+      console.log('Capture rules loaded:', rules);
+      return rules;
+    } catch (error) {
+      console.error('Failed to get capture rules:', error);
+      return [];
+    }
+  }
+
+  /**
+   * 添加捕获规则
+   */
+  static async addRule(rule) {
+    try {
+      const rules = await this.getRules();
+      rules.push(rule);
+      await this.saveRules(rules);
+      console.log('Rule added:', rule);
+    } catch (error) {
+      console.error('Failed to add rule:', error);
+    }
+  }
+
+  /**
+   * 更新捕获规则
+   */
+  static async updateRule(ruleId, updatedRule) {
+    try {
+      const rules = await this.getRules();
+      const index = rules.findIndex(r => r.id === ruleId);
+      if (index !== -1) {
+        rules[index] = updatedRule;
+        await this.saveRules(rules);
+        console.log('Rule updated:', ruleId);
+      }
+    } catch (error) {
+      console.error('Failed to update rule:', error);
+    }
+  }
+
+  /**
+   * 删除捕获规则
+   */
+  static async deleteRule(ruleId) {
+    try {
+      const rules = await this.getRules();
+      const filtered = rules.filter(r => r.id !== ruleId);
+      await this.saveRules(filtered);
+      console.log('Rule deleted:', ruleId);
+    } catch (error) {
+      console.error('Failed to delete rule:', error);
+    }
+  }
+
+  /**
+   * 重新排序规则
+   */
+  static async reorderRules(rules) {
+    try {
+      await this.saveRules(rules);
+      console.log('Rules reordered');
+    } catch (error) {
+      console.error('Failed to reorder rules:', error);
+    }
   }
 }

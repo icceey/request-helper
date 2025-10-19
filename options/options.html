@@ -12,47 +12,116 @@
       <h1 data-i18n="requestHelperSettings">RequestHelper Settings</h1>
     </header>
 
+    <!-- Tab Navigation -->
+    <nav class="tabs">
+      <button class="tab-button active" data-tab="capture-rules" data-i18n="captureRules">Capture Rules</button>
+      <button class="tab-button" data-tab="basic-settings" data-i18n="basicSettings">Basic Settings</button>
+    </nav>
+
     <main>
-      <section class="settings-section">
-        <h2 data-i18n="basicSettings">Basic Settings</h2>
-        <div class="setting-item">
-          <label>
-            <input type="checkbox" id="auto-start" />
-            <span data-i18n="autoStartCapture">Auto-start capture</span>
-          </label>
-        </div>
-        <div class="setting-item">
-          <label>
-            <input type="checkbox" id="capture-static-resources" />
-            <span data-i18n="captureStaticResources">Capture static resources (images, CSS, JS, fonts, etc.)</span>
-          </label>
-        </div>
-      </section>
+      <!-- Capture Rules Tab -->
+      <div id="capture-rules" class="tab-content active">
+        <section class="settings-section">
+          <p class="description" data-i18n="captureRulesDescription">Configure capture rules to filter and capture network requests. When no rules are defined, nothing will be captured.</p>
+          <p class="warning-note" data-i18n="higherPriorityNote">Rules are matched from top to bottom. Higher position = higher priority.</p>
+          
+          <div class="rules-toolbar">
+            <button id="add-rule-btn" class="btn-primary" data-i18n="addRule">Add Rule</button>
+          </div>
 
-      <section class="settings-section">
-        <h2 data-i18n="urlFilterRules">URL Filter Rules</h2>
-        <p class="description" data-i18n="urlFilterDescription">Configure URL patterns to capture, supports wildcard *</p>
-        
-        <div class="url-patterns">
-          <textarea id="url-patterns" rows="10" data-i18n-placeholder="urlPatternsPlaceholder" placeholder="One URL pattern per line, for example:&#10;https://api.example.com/*&#10;*://*/api/*"></textarea>
-        </div>
-      </section>
+          <div id="rules-list" class="rules-list">
+            <!-- Rules will be rendered here -->
+          </div>
 
-      <section class="settings-section">
-        <h2 data-i18n="storageSettings">Storage Settings</h2>
-        <div class="setting-item">
-          <label for="max-requests" data-i18n="maxStoredRequests">Maximum stored requests:</label>
-          <input type="number" id="max-requests" min="10" max="10000" value="1000" />
-        </div>
-      </section>
+          <div id="empty-rules" class="empty-state hidden">
+            <p data-i18n="noRulesDefined">No capture rules defined. Click "Add Rule" to create one.</p>
+          </div>
+        </section>
+      </div>
 
-      <div class="actions">
-        <button id="save-btn" class="btn-primary" data-i18n="saveSettings">Save Settings</button>
-        <button id="reset-btn" class="btn" data-i18n="resetSettings">Restore Defaults</button>
+      <!-- Basic Settings Tab -->
+      <div id="basic-settings" class="tab-content">
+        <section class="settings-section">
+          <h2 data-i18n="basicSettings">Basic Settings</h2>
+          <div class="setting-item">
+            <label>
+              <input type="checkbox" id="auto-start" />
+              <span data-i18n="autoStartCapture">Auto-start capture</span>
+            </label>
+          </div>
+          <div class="setting-item">
+            <label>
+              <input type="checkbox" id="capture-static-resources" />
+              <span data-i18n="captureStaticResources">Capture static resources (images, CSS, JS, fonts, etc.)</span>
+            </label>
+          </div>
+        </section>
+
+        <section class="settings-section">
+          <h2 data-i18n="storageSettings">Storage Settings</h2>
+          <div class="setting-item">
+            <label for="max-requests" data-i18n="maxStoredRequests">Maximum stored requests:</label>
+            <input type="number" id="max-requests" min="10" max="10000" value="1000" />
+          </div>
+        </section>
+
+        <div class="actions">
+          <button id="save-btn" class="btn-primary" data-i18n="saveSettings">Save Settings</button>
+          <button id="reset-btn" class="btn" data-i18n="resetSettings">Restore Defaults</button>
+        </div>
       </div>
 
       <div id="save-message" class="message hidden"></div>
     </main>
+  </div>
+
+  <!-- Rule Edit Modal -->
+  <div id="rule-modal" class="modal hidden">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h2 id="modal-title" data-i18n="addNewRule">Add New Rule</h2>
+        <button id="modal-close" class="close-btn">&times;</button>
+      </div>
+      <div class="modal-body">
+        <div class="form-group">
+          <label for="rule-name" data-i18n="ruleName">Rule Name</label>
+          <input type="text" id="rule-name" placeholder="My API Rule" />
+        </div>
+        
+        <div class="form-group">
+          <label>
+            <input type="checkbox" id="rule-enabled" checked />
+            <span data-i18n="enabled">Enabled</span>
+          </label>
+        </div>
+
+        <div class="form-group">
+          <label for="rule-type" data-i18n="ruleType">Rule Type</label>
+          <select id="rule-type">
+            <option value="url-regex" data-i18n="urlRegex">URL Regex</option>
+            <!-- Future: more rule types can be added here -->
+          </select>
+        </div>
+
+        <div class="form-group">
+          <label for="rule-pattern" data-i18n="ruleCondition">Condition</label>
+          <input type="text" id="rule-pattern" data-i18n-placeholder="urlRegexPlaceholder" placeholder="e.g., https://api\.example\.com/.*" />
+          <small class="hint">Enter a valid JavaScript regular expression pattern</small>
+        </div>
+
+        <div class="form-group">
+          <label for="rule-action" data-i18n="ruleAction">Action</label>
+          <select id="rule-action">
+            <option value="capture" data-i18n="capture">Capture</option>
+            <!-- Future: more action types can be added here -->
+          </select>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button id="modal-cancel" class="btn" data-i18n="cancel">Cancel</button>
+        <button id="modal-save" class="btn-primary" data-i18n="save">Save</button>
+      </div>
+    </div>
   </div>
 
   <script src="options.js" type="module"></script>

@@ -403,6 +403,7 @@ function renderRequestsList() {
       <div>
         <span class="request-method method-${req.method}">${req.method}</span>
         <span class="request-url">${truncateUrl(req.url)}</span>
+        ${req.matchedRule ? `<span class="matched-rule-badge" title="${getMessage('matchedRule')}: ${escapeHtml(req.matchedRule.name)}">📋 ${escapeHtml(req.matchedRule.name)}</span>` : ''}
       </div>
       <div class="request-meta">
         <span>${formatTime(req.timestamp)}</span>
@@ -461,6 +462,11 @@ function renderRequestDetails(request) {
         
         <span class="detail-label">${getMessage('duration')}:</span>
         <span class="detail-value">${request.duration ? request.duration.toFixed(2) + 'ms' : 'N/A'}</span>
+        
+        ${request.matchedRule ? `
+          <span class="detail-label">${getMessage('matchedRule')}:</span>
+          <span class="detail-value"><span class="matched-rule-badge">${escapeHtml(request.matchedRule.name)}</span></span>
+        ` : ''}
         
         ${request.ip ? `
           <span class="detail-label">IP:</span>

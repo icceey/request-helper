@@ -10,6 +10,39 @@ console.log('RequestHelper Service Worker loaded');
 
 let currentConfig = null;
 
+/**
+ * 更新扩展图标角标
+ * @param {boolean} isCapturing - 是否正在捕获
+ * @param {number} count - 已捕获的请求数量
+ */
+export async function updateBadge(isCapturing, count) {
+  try {
+    if (isCapturing) {
+      // 正在捕获中：绿色角标，显示请求数量（即使为0）
+      await chrome.action.setBadgeBackgroundColor({ color: '#34a853' });
+      await chrome.action.setBadgeText({ text: count.toString() });
+    } else {
+      // 未捕获：灰色角标，仅在有请求时显示
+      if (count > 0) {
+        await chrome.action.setBadgeBackgroundColor({ color: '#9aa0a6' });
+        await chrome.action.setBadgeText({ text: count.toString() });
+      } else {
+        // 无请求时不显示角标
+        await chrome.action.setBadgeText({ text: '' });
+      }
+    }
+  } catch (error) {
+    console.error('Failed to update badge:', error);
+  }
+}
+
+/**
+ * 获取当前捕获状态
+ */
+export function getCapturingStatus() {
+  return RequestCapture.isCapturing;
+}
+
 // 初始化
 async function initialize() {
   console.log('Initializing RequestHelper...');
@@ -21,6 +54,11 @@ async function initialize() {
 
     // 注册网络监听器（一次性注册）
     RequestCapture.registerListeners();
+
+    // 获取当前请求数量并更新角标
+    const stats = await StorageManager.getStats();
+    const requestCount = stats.total || 0;
+    await updateBadge(currentConfig.enabled, requestCount);
 
     // 如果配置了自动启动，则开始捕获
     if (currentConfig.autoStart) {
@@ -34,23 +72,31 @@ async function initialize() {
 }
 
 // 启动捕获
-function startCapture() {
+async function startCapture() {
   console.log('Starting capture...');
   RequestCapture.startCapture(currentConfig);
   
   // 更新配置状态
   currentConfig.enabled = true;
   StorageManager.saveConfig(currentConfig);
+  
+  // 更新角标为绿色
+  const stats = await StorageManager.getStats();
+  await updateBadge(true, stats.total || 0);
 }
 
 // 停止捕获
-function stopCapture() {
+async function stopCapture() {
   console.log('Stopping capture...');
   RequestCapture.stopCapture();
   
   // 更新配置状态
   currentConfig.enabled = false;
   StorageManager.saveConfig(currentConfig);
+  
+  // 更新角标为灰色（或清除）
+  const stats = await StorageManager.getStats();
+  await updateBadge(false, stats.total || 0);
 }
 
 // 监听插件安装
@@ -99,10 +145,13 @@ async function handleMessage(message, sender) {
       return { success: true, capturing: false };
 
     case 'GET_STATUS':
+      const allRules = await StorageManager.getRules();
+      const enabledRulesCount = allRules.filter(r => r.enabled).length;
       return {
         success: true,
         capturing: RequestCapture.isCapturing,
-        config: currentConfig
+        config: currentConfig,
+        enabledRulesCount
       };
 
     case 'GET_REQUESTS':
@@ -115,6 +164,8 @@ async function handleMessage(message, sender) {
 
     case 'CLEAR_REQUESTS':
       await StorageManager.clearRequests();
+      // 清空后更新角标
+      await updateBadge(RequestCapture.isCapturing, 0);
       return { success: true };
 
     case 'CONFIG_UPDATED':
@@ -141,6 +192,50 @@ async function handleMessage(message, sender) {
         console.error('❌ RequestHelper: Failed to process response body:', error);
         throw error;
       }
+
+    case 'GET_RULES':
+      const rules = await StorageManager.getRules();
+      return { success: true, rules };
+
+    case 'SAVE_RULES':
+      await StorageManager.saveRules(message.rules);
+      // 如果正在捕获，重新加载规则
+      if (RequestCapture.isCapturing) {
+        RequestCapture.captureRules = message.rules;
+      }
+      return { success: true };
+
+    case 'ADD_RULE':
+      await StorageManager.addRule(message.rule);
+      // 如果正在捕获，重新加载规则
+      if (RequestCapture.isCapturing) {
+        RequestCapture.captureRules = await StorageManager.getRules();
+      }
+      return { success: true };
+
+    case 'UPDATE_RULE':
+      await StorageManager.updateRule(message.ruleId, message.rule);
+      // 如果正在捕获，重新加载规则
+      if (RequestCapture.isCapturing) {
+        RequestCapture.captureRules = await StorageManager.getRules();
+      }
+      return { success: true };
+
+    case 'DELETE_RULE':
+      await StorageManager.deleteRule(message.ruleId);
+      // 如果正在捕获，重新加载规则
+      if (RequestCapture.isCapturing) {
+        RequestCapture.captureRules = await StorageManager.getRules();
+      }
+      return { success: true };
+
+    case 'REORDER_RULES':
+      await StorageManager.reorderRules(message.rules);
+      // 如果正在捕获，重新加载规则
+      if (RequestCapture.isCapturing) {
+        RequestCapture.captureRules = message.rules;
+      }
+      return { success: true };
 
     default:
       console.warn('Unknown message type:', message.type);

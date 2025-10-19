@@ -12,9 +12,17 @@
     "message": "Ready",
     "description": "Status ready"
   },
+  "rulesReady": {
+    "message": "rule(s) ready",
+    "description": "Rules ready status"
+  },
   "capturing": {
     "message": "Capturing",
     "description": "Status capturing"
+  },
+  "rulesCapturing": {
+    "message": "rule(s) capturing",
+    "description": "Rules capturing status"
   },
   "startCapture": {
     "message": "Start Capture",
@@ -286,5 +294,134 @@
   "preview": {
     "message": "Preview",
     "description": "Preview tab"
+  },
+  
+  "captureRules": {
+    "message": "Capture Rules",
+    "description": "Capture rules tab"
+  },
+  "captureRulesDescription": {
+    "message": "Configure capture rules to filter and capture network requests. When no rules are defined, nothing will be captured.",
+    "description": "Capture rules description"
+  },
+  "addRule": {
+    "message": "Add Rule",
+    "description": "Add rule button"
+  },
+  "ruleName": {
+    "message": "Rule Name",
+    "description": "Rule name label"
+  },
+  "ruleType": {
+    "message": "Rule Type",
+    "description": "Rule type label"
+  },
+  "ruleCondition": {
+    "message": "Condition",
+    "description": "Rule condition label"
+  },
+  "ruleAction": {
+    "message": "Action",
+    "description": "Rule action label"
+  },
+  "enabled": {
+    "message": "Enabled",
+    "description": "Enabled status"
+  },
+  "disabled": {
+    "message": "Disabled",
+    "description": "Disabled status"
+  },
+  "urlRegex": {
+    "message": "URL Regex",
+    "description": "URL regex rule type"
+  },
+  "urlRegexPlaceholder": {
+    "message": "e.g., https://api\\.example\\.com/.*",
+    "description": "URL regex placeholder"
+  },
+  "capture": {
+    "message": "Capture",
+    "description": "Capture action"
+  },
+  "actions": {
+    "message": "Actions",
+    "description": "Actions column"
+  },
+  "edit": {
+    "message": "Edit",
+    "description": "Edit button"
+  },
+  "delete": {
+    "message": "Delete",
+    "description": "Delete button"
+  },
+  "moveUp": {
+    "message": "Move Up",
+    "description": "Move up button"
+  },
+  "moveDown": {
+    "message": "Move Down",
+    "description": "Move Down button"
+  },
+  "noRulesDefined": {
+    "message": "No capture rules defined. Click \"Add Rule\" to create one.",
+    "description": "Empty rules message"
+  },
+  "ruleNameRequired": {
+    "message": "Rule name is required",
+    "description": "Rule name validation"
+  },
+  "rulePatternRequired": {
+    "message": "Rule pattern is required",
+    "description": "Rule pattern validation"
+  },
+  "invalidRegexPattern": {
+    "message": "Invalid regex pattern",
+    "description": "Invalid regex validation"
+  },
+  "ruleAdded": {
+    "message": "Rule added successfully",
+    "description": "Rule added message"
+  },
+  "ruleUpdated": {
+    "message": "Rule updated successfully",
+    "description": "Rule updated message"
+  },
+  "ruleDeleted": {
+    "message": "Rule deleted successfully",
+    "description": "Rule deleted message"
+  },
+  "confirmDeleteRule": {
+    "message": "Are you sure you want to delete this rule?",
+    "description": "Confirm delete rule message"
+  },
+  "matchedRule": {
+    "message": "Matched Rule",
+    "description": "Matched rule label"
+  },
+  "priority": {
+    "message": "Priority",
+    "description": "Priority label"
+  },
+  "higherPriorityNote": {
+    "message": "Rules are matched from top to bottom. Higher position = higher priority.",
+    "description": "Priority note"
+  },
+  "cancel": {
+    "message": "Cancel",
+    "description": "Cancel button"
+  },
+  "save": {
+    "message": "Save",
+    "description": "Save button"
+  },
+  "editRule": {
+    "message": "Edit Rule",
+    "description": "Edit rule dialog title"
+  },
+  "addNewRule": {
+    "message": "Add New Rule",
+    "description": "Add rule dialog title"
   }
 }
