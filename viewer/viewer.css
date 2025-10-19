@@ -284,6 +284,102 @@ h1 {
   font-size: 13px;
 }
 
+/* 规则筛选器样式 */
+.rule-filter-container {
+  position: relative;
+}
+
+#rule-filter-btn {
+  white-space: nowrap;
+}
+
+#rule-filter-btn.active {
+  background: #e8f0fe;
+  color: #1a73e8;
+  border-color: #1a73e8;
+}
+
+.rule-dropdown {
+  display: none;
+  position: absolute;
+  top: calc(100% + 4px);
+  left: 0;
+  background: white;
+  border: 1px solid #dadce0;
+  border-radius: 4px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+  min-width: 250px;
+  max-height: 400px;
+  overflow-y: auto;
+  z-index: 1000;
+}
+
+.rule-dropdown.show {
+  display: block;
+}
+
+.rule-dropdown-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 8px 12px;
+  border-bottom: 1px solid #e0e0e0;
+  background: #f8f9fa;
+  position: sticky;
+  top: 0;
+  z-index: 1;
+}
+
+.rule-dropdown-header span {
+  font-weight: 600;
+  font-size: 13px;
+  color: #333;
+}
+
+.rule-filter-list {
+  padding: 8px;
+}
+
+.rule-checkbox-item {
+  display: flex;
+  align-items: center;
+  padding: 6px 8px;
+  cursor: pointer;
+  border-radius: 4px;
+  user-select: none;
+}
+
+.rule-checkbox-item:hover {
+  background: #f8f9fa;
+}
+
+.rule-checkbox-item input[type="checkbox"] {
+  margin-right: 8px;
+  cursor: pointer;
+  flex-shrink: 0;
+}
+
+.rule-checkbox-item .rule-name {
+  margin-right: 6px;
+  font-size: 13px;
+  color: #333;
+  flex: 1;
+  word-break: break-word;
+}
+
+.rule-checkbox-item .rule-count {
+  font-size: 12px;
+  color: #666;
+  flex-shrink: 0;
+}
+
+.rule-filter-list .empty-notice {
+  padding: 12px;
+  text-align: center;
+  color: #666;
+  font-size: 13px;
+}
+
 .btn {
   padding: 8px 16px;
   background: white;

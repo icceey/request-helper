@@ -274,6 +274,18 @@
     "message": "No methods",
     "description": "Empty state when no methods available"
   },
+  "filterByRule": {
+    "message": "Filter by Rule",
+    "description": "Rule filter button"
+  },
+  "selectRule": {
+    "message": "Select Rule",
+    "description": "Rule dropdown header"
+  },
+  "noRules": {
+    "message": "No rules",
+    "description": "Empty state when no rules available"
+  },
   
   "none": {
     "message": "None",

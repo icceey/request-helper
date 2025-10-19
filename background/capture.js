@@ -129,11 +129,13 @@ export class RequestCapture {
    */
   static isStaticResource(type) {
     const staticResourceTypes = [
-      'image',       // 图片
-      'stylesheet',  // CSS
-      'script',      // JavaScript
-      'font',        // 字体
-      'media'        // 音视频
+      'main_frame',    // 主文档（HTML页面）
+      'sub_frame',     // iframe 内的文档
+      'stylesheet',    // CSS
+      'script',        // JavaScript
+      'image',         // 图片
+      'font',          // 字体
+      'media'         // 媒体资源（音视频）
     ];
     return staticResourceTypes.includes(type);
   }

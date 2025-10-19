@@ -274,6 +274,18 @@
     "message": "暂无请求方法",
     "description": "没有可用请求方法时的空状态"
   },
+  "filterByRule": {
+    "message": "按规则筛选",
+    "description": "规则筛选按钮"
+  },
+  "selectRule": {
+    "message": "选择规则",
+    "description": "规则下拉菜单标题"
+  },
+  "noRules": {
+    "message": "暂无规则",
+    "description": "没有可用规则时的空状态"
+  },
   
   "none": {
     "message": "无",

@@ -52,6 +52,18 @@
             </div>
           </div>
         </div>
+        <div class="rule-filter-container">
+          <button id="rule-filter-btn" class="btn"><span data-i18n="filterByRule">Filter by Rule</span> ▼</button>
+          <div id="rule-filter-dropdown" class="rule-dropdown">
+            <div class="rule-dropdown-header">
+              <span data-i18n="selectRule">Select Rule</span>
+              <button id="rule-clear-btn" class="clear-filter-btn" data-i18n="clear">Clear</button>
+            </div>
+            <div id="rule-filter-list" class="rule-filter-list">
+              <!-- Dynamically generated -->
+            </div>
+          </div>
+        </div>
         <button id="slow-request-btn" class="btn toggle-btn" data-i18n-title="slowRequestsTooltip" title="Show only requests over 1 second">🐌 <span data-i18n="slowRequests">Slow Requests</span></button>
         <button id="clear-btn" class="btn btn-danger" data-i18n="clear">Clear</button>
       </div>

@@ -55,10 +55,19 @@ async function initialize() {
     // 注册网络监听器（一次性注册）
     RequestCapture.registerListeners();
 
+    // Service Worker 重启后，捕获状态会重置为 false
+    // 如果配置中的 enabled 为 true，需要将其更新为 false 并保存
+    if (currentConfig.enabled && !RequestCapture.isCapturing) {
+      console.log('Service Worker restarted, resetting capture state');
+      currentConfig.enabled = false;
+      await StorageManager.saveConfig(currentConfig);
+    }
+
     // 获取当前请求数量并更新角标
     const stats = await StorageManager.getStats();
     const requestCount = stats.total || 0;
-    await updateBadge(currentConfig.enabled, requestCount);
+    // 使用实际的捕获状态来更新角标
+    await updateBadge(RequestCapture.isCapturing, requestCount);
 
     // 如果配置了自动启动，则开始捕获
     if (currentConfig.autoStart) {

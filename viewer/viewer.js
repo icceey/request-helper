@@ -9,6 +9,7 @@ let filteredRequests = [];
 let selectedRequest = null;
 let selectedStatusCodes = new Set(); // 选中的状态码
 let selectedMethods = new Set(); // 选中的请求方法
+let selectedRules = new Set(); // 选中的捕获规则
 let showSlowRequestsOnly = false; // 是否仅显示慢请求
 let searchScopes = new Set(['url']); // 搜索范围：url, requestBody, responseBody
 
@@ -27,6 +28,10 @@ const statusFilterBtn = document.getElementById('status-filter-btn');
 const statusFilterDropdown = document.getElementById('status-filter-dropdown');
 const statusFilterList = document.getElementById('status-filter-list');
 const statusClearBtn = document.getElementById('status-clear-btn');
+const ruleFilterBtn = document.getElementById('rule-filter-btn');
+const ruleFilterDropdown = document.getElementById('rule-filter-dropdown');
+const ruleFilterList = document.getElementById('rule-filter-list');
+const ruleClearBtn = document.getElementById('rule-clear-btn');
 const slowRequestBtn = document.getElementById('slow-request-btn');
 const clearBtn = document.getElementById('clear-btn');
 
@@ -73,6 +78,8 @@ async function init() {
   methodClearBtn.addEventListener('click', clearMethodFilter);
   statusFilterBtn.addEventListener('click', toggleStatusDropdown);
   statusClearBtn.addEventListener('click', clearStatusFilter);
+  ruleFilterBtn.addEventListener('click', toggleRuleDropdown);
+  ruleClearBtn.addEventListener('click', clearRuleFilter);
   slowRequestBtn.addEventListener('click', toggleSlowRequestFilter);
   clearBtn.addEventListener('click', handleClear);
 
@@ -83,6 +90,9 @@ async function init() {
     }
     if (!e.target.closest('.status-filter-container')) {
       statusFilterDropdown.classList.remove('show');
+    }
+    if (!e.target.closest('.rule-filter-container')) {
+      ruleFilterDropdown.classList.remove('show');
     }
   });
 
@@ -100,6 +110,7 @@ async function loadRequests() {
       filteredRequests = [...allRequests];
       updateMethodFilter(); // 更新请求方法筛选器
       updateStatusFilter(); // 更新状态码筛选器
+      updateRuleFilter(); // 更新规则筛选器
       renderRequestsList();
     }
   } catch (error) {
@@ -275,6 +286,90 @@ function clearStatusFilter(e) {
   handleFilter();
 }
 
+// 更新规则筛选器
+function updateRuleFilter() {
+  // 统计所有规则及其匹配的请求数量
+  const ruleMap = new Map();
+  
+  allRequests.forEach(req => {
+    if (req.matchedRule) {
+      const ruleId = req.matchedRule.id;
+      const ruleName = req.matchedRule.name;
+      const existing = ruleMap.get(ruleId) || { name: ruleName, count: 0 };
+      existing.count++;
+      ruleMap.set(ruleId, existing);
+    }
+  });
+
+  // 生成选项列表
+  if (ruleMap.size === 0) {
+    ruleFilterList.innerHTML = `<div class="empty-notice">${getMessage('noRules')}</div>`;
+    return;
+  }
+
+  const sortedRules = Array.from(ruleMap.entries()).sort((a, b) => 
+    a[1].name.localeCompare(b[1].name)
+  );
+
+  const html = sortedRules.map(([ruleId, ruleData]) => `
+    <label class="rule-checkbox-item">
+      <input type="checkbox" value="${ruleId}" ${selectedRules.has(ruleId) ? 'checked' : ''}>
+      <span class="rule-name">${escapeHtml(ruleData.name)}</span>
+      <span class="rule-count">(${ruleData.count})</span>
+    </label>
+  `).join('');
+
+  ruleFilterList.innerHTML = html;
+
+  // 绑定复选框事件
+  ruleFilterList.querySelectorAll('input[type="checkbox"]').forEach(checkbox => {
+    checkbox.addEventListener('change', handleRuleFilterChange);
+  });
+
+  // 更新按钮文本
+  updateRuleButtonText();
+}
+
+// 切换规则下拉菜单
+function toggleRuleDropdown(e) {
+  e.stopPropagation();
+  ruleFilterDropdown.classList.toggle('show');
+}
+
+// 处理规则筛选变化
+function handleRuleFilterChange(e) {
+  const ruleId = e.target.value;
+  
+  if (e.target.checked) {
+    selectedRules.add(ruleId);
+  } else {
+    selectedRules.delete(ruleId);
+  }
+
+  updateRuleButtonText();
+  handleFilter();
+}
+
+// 更新规则按钮文本
+function updateRuleButtonText() {
+  const count = selectedRules.size;
+  if (count > 0) {
+    ruleFilterBtn.innerHTML = `<span data-i18n="filterByRule">${getMessage('filterByRule')}</span> (${count}) ▼`;
+    ruleFilterBtn.classList.add('active');
+  } else {
+    ruleFilterBtn.innerHTML = `<span data-i18n="filterByRule">${getMessage('filterByRule')}</span> ▼`;
+    ruleFilterBtn.classList.remove('active');
+  }
+}
+
+// 清除规则筛选
+function clearRuleFilter(e) {
+  e.stopPropagation();
+  selectedRules.clear();
+  updateRuleFilter();
+  handleFilter();
+}
+
 // 切换慢请求筛选
 function toggleSlowRequestFilter() {
   showSlowRequestsOnly = !showSlowRequestsOnly;
@@ -370,6 +465,13 @@ function handleFilter() {
     // 状态码过滤（不选等于不过滤）
     if (selectedStatusCodes.size > 0) {
       if (!req.statusCode || !selectedStatusCodes.has(req.statusCode)) {
+        return false;
+      }
+    }
+
+    // 规则过滤（不选等于不过滤）
+    if (selectedRules.size > 0) {
+      if (!req.matchedRule || !selectedRules.has(req.matchedRule.id)) {
         return false;
       }
     }
