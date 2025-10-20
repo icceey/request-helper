@@ -630,6 +630,33 @@ pre {
   color: #abb2bf;
 }
 
+/* JSON语法高亮样式 */
+.json-highlighted {
+  background: #282c34;
+  color: #abb2bf;
+  line-height: 1.5;
+}
+
+.json-highlighted .json-key {
+  color: #61afef;
+}
+
+.json-highlighted .json-string {
+  color: #98c379;
+}
+
+.json-highlighted .json-number {
+  color: #d19a66;
+}
+
+.json-highlighted .json-boolean {
+  color: #c678dd;
+}
+
+.json-highlighted .json-null {
+  color: #e06c75;
+}
+
 .text-body {
   white-space: pre-wrap;
   word-break: break-word;

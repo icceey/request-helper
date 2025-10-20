@@ -647,21 +647,30 @@ function renderHeaders(title, headers) {
 function renderRequestBody(requestBody) {
   let bodyHtml = '';
   let bodyContent = '';
+  let isJson = false;
 
   if (requestBody.formData) {
     bodyContent = JSON.stringify(requestBody.formData, null, 2);
-    bodyHtml = '<pre>' + bodyContent + '</pre>';
+    isJson = true;
   } else if (requestBody.raw) {
     // 尝试显示解码后的内容
     const rawItems = Array.isArray(requestBody.raw) ? requestBody.raw : [requestBody.raw];
     const processedItems = rawItems.map(item => {
       // 如果有JSON格式，优先显示JSON
       if (item.json) {
+        isJson = true;
         return JSON.stringify(item.json, null, 2);
       }
       // 否则显示文本
       if (item.text) {
-        return item.text;
+        // 尝试解析文本是否为JSON
+        try {
+          JSON.parse(item.text);
+          isJson = true;
+          return item.text;
+        } catch (e) {
+          return item.text;
+        }
       }
       // 如果都没有，显示字节信息
       if (item.bytes) {
@@ -671,13 +680,25 @@ function renderRequestBody(requestBody) {
     });
     
     bodyContent = processedItems.join('\n\n');
-    bodyHtml = '<pre>' + escapeHtml(bodyContent) + '</pre>';
   } else if (typeof requestBody === 'string') {
     bodyContent = requestBody;
-    bodyHtml = '<pre>' + escapeHtml(bodyContent) + '</pre>';
+    // 尝试检测是否为JSON字符串
+    try {
+      JSON.parse(bodyContent);
+      isJson = true;
+    } catch (e) {
+      // 不是JSON
+    }
   } else if (typeof requestBody === 'object') {
     bodyContent = JSON.stringify(requestBody, null, 2);
-    bodyHtml = '<pre>' + bodyContent + '</pre>';
+    isJson = true;
+  }
+
+  // 根据是否为JSON应用不同的渲染
+  if (isJson) {
+    bodyHtml = '<pre class="json-highlighted">' + highlightJson(bodyContent) + '</pre>';
+  } else {
+    bodyHtml = '<pre>' + escapeHtml(bodyContent) + '</pre>';
   }
 
   return `
@@ -712,7 +733,8 @@ function renderResponseBody(responseBody, contentType) {
     switch (responseBody.type) {
       case 'json':
         bodyContent = JSON.stringify(responseBody.data, null, 2);
-        bodyHtml = `<pre class="json-body">${bodyContent}</pre>`;
+        const highlightedJson = highlightJson(bodyContent);
+        bodyHtml = `<pre class="json-highlighted">${highlightedJson}</pre>`;
         tabs = `
           <div class="tabs">
             <button class="tab active" data-tab="formatted">${getMessage('formatted')}</button>
@@ -720,7 +742,7 @@ function renderResponseBody(responseBody, contentType) {
           </div>
           <div class="tab-content">
             <div class="tab-pane active" data-pane="formatted">
-              <pre class="json-body">${bodyContent}</pre>
+              <pre class="json-highlighted">${highlightedJson}</pre>
             </div>
             <div class="tab-pane" data-pane="raw">
               <pre>${escapeHtml(JSON.stringify(responseBody.data))}</pre>
@@ -757,10 +779,16 @@ function renderResponseBody(responseBody, contentType) {
     // 旧格式的响应体
     if (typeof responseBody === 'string') {
       bodyContent = responseBody;
-      bodyHtml = '<pre>' + escapeHtml(responseBody.substring(0, 10000)) + '</pre>';
+      // 尝试检测是否为JSON
+      try {
+        JSON.parse(bodyContent);
+        bodyHtml = '<pre class="json-highlighted">' + highlightJson(bodyContent) + '</pre>';
+      } catch (e) {
+        bodyHtml = '<pre>' + escapeHtml(responseBody.substring(0, 10000)) + '</pre>';
+      }
     } else if (typeof responseBody === 'object') {
       bodyContent = JSON.stringify(responseBody, null, 2);
-      bodyHtml = '<pre>' + bodyContent + '</pre>';
+      bodyHtml = '<pre class="json-highlighted">' + highlightJson(bodyContent) + '</pre>';
     }
   }
 
@@ -808,6 +836,45 @@ function escapeHtml(text) {
   const div = document.createElement('div');
   div.textContent = text;
   return div.innerHTML;
+}
+
+// JSON语法高亮
+function highlightJson(jsonString) {
+  try {
+    // 确保是有效的JSON字符串
+    let obj;
+    if (typeof jsonString === 'string') {
+      obj = JSON.parse(jsonString);
+    } else {
+      obj = jsonString;
+    }
+    
+    const formatted = JSON.stringify(obj, null, 2);
+    
+    // 为JSON添加语法高亮
+    return formatted
+      .replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;')
+      .replace(/("(\\u[a-zA-Z0-9]{4}|\\[^u]|[^\\"])*"(\s*:)?|\b(true|false|null)\b|-?\d+(?:\.\d*)?(?:[eE][+\-]?\d+)?)/g, (match) => {
+        let cls = 'json-number';
+        if (/^"/.test(match)) {
+          if (/:$/.test(match)) {
+            cls = 'json-key';
+          } else {
+            cls = 'json-string';
+          }
+        } else if (/true|false/.test(match)) {
+          cls = 'json-boolean';
+        } else if (/null/.test(match)) {
+          cls = 'json-null';
+        }
+        return `<span class="${cls}">${match}</span>`;
+      });
+  } catch (e) {
+    // 如果不是有效的JSON，返回转义后的原始文本
+    return escapeHtml(String(jsonString));
+  }
 }
 
 // 处理复制按钮点击
