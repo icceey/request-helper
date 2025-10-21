@@ -12,6 +12,8 @@ export class RequestCapture {
   static config = null;
   static pendingRequests = new Map(); // 存储进行中的请求
   static captureRules = []; // 捕获规则列表
+  static blockRules = []; // 阻断规则列表
+  static DNR_RULE_ID_OFFSET = 10000; // declarativeNetRequest规则ID起始值
 
   /**
    * 开始捕获网络请求
@@ -23,6 +25,9 @@ export class RequestCapture {
     // 加载捕获规则
     this.captureRules = await StorageManager.getRules();
 
+    // 更新阻断规则
+    await this.updateBlockRules();
+
     // 注册webRequest监听器
     this.registerListeners();
   }
@@ -30,8 +35,11 @@ export class RequestCapture {
   /**
    * 停止捕获
    */
-  static stopCapture() {
+  static async stopCapture() {
     this.isCapturing = false;
+    
+    // 清除所有阻断规则
+    await this.clearBlockRules();
     
     // 注意：webRequest监听器一旦注册就无法移除
     // 我们通过 isCapturing 标志来控制是否处理请求
@@ -125,10 +133,10 @@ export class RequestCapture {
   }
 
   /**
-   * 检查是否为静态资源请求
+   * 获取静态资源类型列表
    */
-  static isStaticResource(type) {
-    const staticResourceTypes = [
+  static getStaticResourceTypes() {
+    return [
       'main_frame',    // 主文档（HTML页面）
       'sub_frame',     // iframe 内的文档
       'stylesheet',    // CSS
@@ -137,7 +145,13 @@ export class RequestCapture {
       'font',          // 字体
       'media'         // 媒体资源（音视频）
     ];
-    return staticResourceTypes.includes(type);
+  }
+
+  /**
+   * 检查是否为静态资源请求
+   */
+  static isStaticResource(type) {
+    return this.getStaticResourceTypes().includes(type);
   }
 
   /**
@@ -482,5 +496,108 @@ export class RequestCapture {
     }
 
     return headers;
+  }
+
+  /**
+   * 更新阻断规则
+   * 将配置的阻断规则转换为declarativeNetRequest规则
+   */
+  static async updateBlockRules() {
+    try {
+      // 获取所有启用的阻断规则
+      const allRules = await StorageManager.getRules();
+      const blockRules = allRules.filter(rule => 
+        rule.enabled && 
+        rule.action.type === 'block'
+      );
+
+      console.log('Updating block rules:', blockRules);
+
+      // 获取静态资源类型
+      const staticResourceTypes = this.getStaticResourceTypes();
+
+      // 定义非静态资源类型
+      const dynamicResourceTypes = [
+        'object',
+        'xmlhttprequest',
+        'ping',
+        'csp_report',
+        'websocket',
+        'webtransport',
+        'webbundle',
+        'other'
+      ];
+
+      // 根据配置决定要阻断的资源类型
+      let allowedResourceTypes;
+      if (this.config?.captureStaticResources) {
+        // 如果允许捕获静态资源，阻断所有类型
+        allowedResourceTypes = [...staticResourceTypes, ...dynamicResourceTypes];
+      } else {
+        // 如果不捕获静态资源，只阻断非静态资源
+        allowedResourceTypes = dynamicResourceTypes;
+      }
+
+      // 转换为declarativeNetRequest规则格式
+      const dnrRules = blockRules.map((rule, index) => {
+        const dnrRule = {
+          id: this.DNR_RULE_ID_OFFSET + index,
+          priority: allRules.length - allRules.indexOf(rule), // 保持优先级顺序
+          action: { type: 'block' },
+          condition: {}
+        };
+
+        // 根据规则类型设置条件
+        if (rule.type === 'url-regex') {
+          dnrRule.condition.regexFilter = rule.condition.pattern;
+          dnrRule.condition.resourceTypes = allowedResourceTypes;
+        }
+
+        return dnrRule;
+      });
+
+      // 获取当前所有规则
+      const existingRules = await chrome.declarativeNetRequest.getDynamicRules();
+      
+      // 删除所有旧的阻断规则（ID >= DNR_RULE_ID_OFFSET）
+      const ruleIdsToRemove = existingRules
+        .filter(r => r.id >= this.DNR_RULE_ID_OFFSET)
+        .map(r => r.id);
+
+      // 更新规则
+      await chrome.declarativeNetRequest.updateDynamicRules({
+        removeRuleIds: ruleIdsToRemove,
+        addRules: dnrRules
+      });
+
+      this.blockRules = blockRules;
+      console.log('Block rules updated successfully:', dnrRules.length, 'rules');
+    } catch (error) {
+      console.error('Failed to update block rules:', error);
+      throw error;
+    }
+  }
+
+  /**
+   * 清除所有阻断规则
+   */
+  static async clearBlockRules() {
+    try {
+      const existingRules = await chrome.declarativeNetRequest.getDynamicRules();
+      const ruleIdsToRemove = existingRules
+        .filter(r => r.id >= this.DNR_RULE_ID_OFFSET)
+        .map(r => r.id);
+
+      if (ruleIdsToRemove.length > 0) {
+        await chrome.declarativeNetRequest.updateDynamicRules({
+          removeRuleIds: ruleIdsToRemove
+        });
+        console.log('Cleared block rules:', ruleIdsToRemove.length);
+      }
+
+      this.blockRules = [];
+    } catch (error) {
+      console.error('Failed to clear block rules:', error);
+    }
   }
 }

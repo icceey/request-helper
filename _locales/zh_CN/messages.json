@@ -195,6 +195,10 @@
     "message": "状态",
     "description": "状态标签"
   },
+  "pending": {
+    "message": "待定",
+    "description": "待定状态"
+  },
   "duration": {
     "message": "耗时",
     "description": "耗时标签"
@@ -355,6 +359,14 @@
   "capture": {
     "message": "捕获",
     "description": "捕获动作"
+  },
+  "block": {
+    "message": "阻断",
+    "description": "阻断动作"
+  },
+  "ruleActionHint": {
+    "message": "选择对匹配请求执行捕获还是阻断",
+    "description": "规则动作提示"
   },
   "actions": {
     "message": "操作",

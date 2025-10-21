@@ -195,6 +195,18 @@ input[type="text"] {
   color: #721c24;
 }
 
+.rule-badge.block {
+  background: #ffe6e6;
+  color: #d93025;
+  border: 1px solid #d93025;
+}
+
+.rule-badge.capture {
+  background: #e6f4ea;
+  color: #137333;
+  border: 1px solid #137333;
+}
+
 .rule-actions {
   display: flex;
   gap: 4px;

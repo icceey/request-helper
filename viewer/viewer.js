@@ -215,11 +215,18 @@ function updateStatusFilter() {
     if (req.statusCode) {
       const code = req.statusCode;
       statusCodeMap.set(code, (statusCodeMap.get(code) || 0) + 1);
+    } else {
+      // 没有状态码的请求标记为 pending
+      statusCodeMap.set('pending', (statusCodeMap.get('pending') || 0) + 1);
     }
   });
 
-  // 按状态码排序
-  const sortedCodes = Array.from(statusCodeMap.entries()).sort((a, b) => a[0] - b[0]);
+  // 按状态码排序：pending 放在最后，数字状态码按升序排列
+  const sortedCodes = Array.from(statusCodeMap.entries()).sort((a, b) => {
+    if (a[0] === 'pending') return 1;
+    if (b[0] === 'pending') return -1;
+    return a[0] - b[0];
+  });
 
   // 生成选项列表
   if (sortedCodes.length === 0) {
@@ -227,13 +234,20 @@ function updateStatusFilter() {
     return;
   }
 
-  const html = sortedCodes.map(([code, count]) => `
-    <label class="status-checkbox-item">
-      <input type="checkbox" value="${code}" ${selectedStatusCodes.has(code) ? 'checked' : ''}>
-      <span class="status-code status-${getStatusClass(code)}">${code}</span>
-      <span class="status-count">(${count})</span>
-    </label>
-  `).join('');
+  const html = sortedCodes.map(([code, count]) => {
+    const isPending = code === 'pending';
+    const displayText = isPending ? getMessage('pending') : code;
+    const statusClass = isPending ? 'pending' : getStatusClass(code);
+    const checkedAttr = selectedStatusCodes.has(code) ? 'checked' : '';
+    
+    return `
+      <label class="status-checkbox-item">
+        <input type="checkbox" value="${code}" ${checkedAttr}>
+        <span class="status-code status-${statusClass}">${displayText}</span>
+        <span class="status-count">(${count})</span>
+      </label>
+    `;
+  }).join('');
 
   statusFilterList.innerHTML = html;
 
@@ -254,12 +268,14 @@ function toggleStatusDropdown(e) {
 
 // 处理状态码筛选变化
 function handleStatusFilterChange(e) {
-  const code = parseInt(e.target.value);
+  const code = e.target.value;
+  // 如果不是 pending，转换为整数
+  const codeValue = code === 'pending' ? 'pending' : parseInt(code);
   
   if (e.target.checked) {
-    selectedStatusCodes.add(code);
+    selectedStatusCodes.add(codeValue);
   } else {
-    selectedStatusCodes.delete(code);
+    selectedStatusCodes.delete(codeValue);
   }
 
   updateStatusButtonText();
@@ -464,7 +480,10 @@ function handleFilter() {
 
     // 状态码过滤（不选等于不过滤）
     if (selectedStatusCodes.size > 0) {
-      if (!req.statusCode || !selectedStatusCodes.has(req.statusCode)) {
+      // 如果请求有状态码，检查是否在选中的状态码中
+      // 如果请求没有状态码，检查是否选中了 pending
+      const requestStatusCode = req.statusCode || 'pending';
+      if (!selectedStatusCodes.has(requestStatusCode)) {
         return false;
       }
     }
@@ -509,7 +528,7 @@ function renderRequestsList() {
       </div>
       <div class="request-meta">
         <span>${formatTime(req.timestamp)}</span>
-        ${req.statusCode ? `<span class="status-code status-${getStatusClass(req.statusCode)}">${req.statusCode}</span>` : '<span>pending</span>'}
+        ${req.statusCode ? `<span class="status-code status-${getStatusClass(req.statusCode)}">${req.statusCode}</span>` : `<span class="status-code status-pending">${getMessage('pending')}</span>`}
       </div>
     </div>
   `).join('');

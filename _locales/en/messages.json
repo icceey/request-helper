@@ -195,6 +195,10 @@
     "message": "Status",
     "description": "Status label"
   },
+  "pending": {
+    "message": "Pending",
+    "description": "Pending status"
+  },
   "duration": {
     "message": "Duration",
     "description": "Duration label"
@@ -355,6 +359,14 @@
   "capture": {
     "message": "Capture",
     "description": "Capture action"
+  },
+  "block": {
+    "message": "Block",
+    "description": "Block action"
+  },
+  "ruleActionHint": {
+    "message": "Choose whether to capture or block matching requests",
+    "description": "Rule action hint"
   },
   "actions": {
     "message": "Actions",

@@ -153,6 +153,9 @@ function renderRules() {
           <span class="rule-badge ${rule.enabled ? 'enabled' : 'disabled'}" data-i18n="${rule.enabled ? 'enabled' : 'disabled'}">
             ${getMessage(rule.enabled ? 'enabled' : 'disabled')}
           </span>
+          <span class="rule-badge ${rule.action.type}">
+            ${getRuleActionName(rule.action.type)}
+          </span>
         </div>
         <div class="rule-actions">
           <button class="btn-icon btn-move-up" data-rule-id="${rule.id}" ${index === 0 ? 'disabled' : ''} title="${getMessage('moveUp')}">↑</button>
@@ -193,7 +196,8 @@ function getRuleTypeName(type) {
 // 获取规则动作名称
 function getRuleActionName(actionType) {
   const names = {
-    'capture': getMessage('capture')
+    'capture': getMessage('capture'),
+    'block': getMessage('block')
   };
   return names[actionType] || actionType;
 }

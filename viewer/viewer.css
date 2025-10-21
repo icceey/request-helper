@@ -497,6 +497,7 @@ main {
 .status-3xx { color: #fbbc04; }
 .status-4xx { color: #ff6d00; }
 .status-5xx { color: #ea4335; }
+.status-pending { color: #9aa0a6; font-style: italic; }
 
 .request-details {
   flex: 1;

@@ -181,9 +181,11 @@ async function handleMessage(message, sender) {
       currentConfig = message.config;
       await StorageManager.saveConfig(currentConfig);
       
-      // 如果正在捕获，更新捕获配置
+      // 如果正在捕获，更新捕获配置并重新应用阻断规则
       if (RequestCapture.isCapturing) {
         RequestCapture.config = currentConfig;
+        // 重新应用阻断规则，因为 captureStaticResources 配置可能已更改
+        await RequestCapture.updateBlockRules();
       }
       
       return { success: true };
@@ -208,41 +210,46 @@ async function handleMessage(message, sender) {
 
     case 'SAVE_RULES':
       await StorageManager.saveRules(message.rules);
-      // 如果正在捕获，重新加载规则
+      // 如果正在捕获，重新加载规则并更新阻断规则
       if (RequestCapture.isCapturing) {
         RequestCapture.captureRules = message.rules;
+        await RequestCapture.updateBlockRules();
       }
       return { success: true };
 
     case 'ADD_RULE':
       await StorageManager.addRule(message.rule);
-      // 如果正在捕获，重新加载规则
+      // 如果正在捕获，重新加载规则并更新阻断规则
       if (RequestCapture.isCapturing) {
         RequestCapture.captureRules = await StorageManager.getRules();
+        await RequestCapture.updateBlockRules();
       }
       return { success: true };
 
     case 'UPDATE_RULE':
       await StorageManager.updateRule(message.ruleId, message.rule);
-      // 如果正在捕获，重新加载规则
+      // 如果正在捕获，重新加载规则并更新阻断规则
       if (RequestCapture.isCapturing) {
         RequestCapture.captureRules = await StorageManager.getRules();
+        await RequestCapture.updateBlockRules();
       }
       return { success: true };
 
     case 'DELETE_RULE':
       await StorageManager.deleteRule(message.ruleId);
-      // 如果正在捕获，重新加载规则
+      // 如果正在捕获，重新加载规则并更新阻断规则
       if (RequestCapture.isCapturing) {
         RequestCapture.captureRules = await StorageManager.getRules();
+        await RequestCapture.updateBlockRules();
       }
       return { success: true };
 
     case 'REORDER_RULES':
       await StorageManager.reorderRules(message.rules);
-      // 如果正在捕获，重新加载规则
+      // 如果正在捕获，重新加载规则并更新阻断规则
       if (RequestCapture.isCapturing) {
         RequestCapture.captureRules = message.rules;
+        await RequestCapture.updateBlockRules();
       }
       return { success: true };
 
