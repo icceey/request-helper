@@ -589,6 +589,11 @@ function renderRequestDetails(request) {
           <span class="detail-value"><span class="matched-rule-badge">${escapeHtml(request.matchedRule.name)}</span></span>
         ` : ''}
         
+        ${request.modified ? `
+          <span class="detail-label">${getMessage('requestModified')}:</span>
+          <span class="detail-value"><span class="modified-badge">✏️ ${getMessage('requestModified')}</span></span>
+        ` : ''}
+        
         ${request.ip ? `
           <span class="detail-label">IP:</span>
           <span class="detail-value">${request.ip}</span>
@@ -608,7 +613,7 @@ function renderRequestDetails(request) {
 
     ${renderHeaders(getMessage('requestHeaders'), request.requestHeaders)}
     
-    ${request.requestBody ? renderRequestBody(request.requestBody) : ''}
+    ${request.requestBody ? renderRequestBody(request.requestBody, request.originalRequestBody, request.modified, request.modificationDetails) : ''}
     
     ${renderHeaders(getMessage('responseHeaders'), request.responseHeaders)}
     
@@ -663,7 +668,7 @@ function renderHeaders(title, headers) {
 }
 
 // 渲染请求体
-function renderRequestBody(requestBody) {
+function renderRequestBody(requestBody, originalRequestBody, modified, modificationDetails) {
   let bodyHtml = '';
   let bodyContent = '';
   let isJson = false;
@@ -720,10 +725,51 @@ function renderRequestBody(requestBody) {
     bodyHtml = '<pre>' + escapeHtml(bodyContent) + '</pre>';
   }
 
+  // 如果请求被修改，显示修改信息
+  let modificationHtml = '';
+  if (modified && originalRequestBody) {
+    let originalBodyContent = '';
+    if (typeof originalRequestBody === 'string') {
+      originalBodyContent = originalRequestBody;
+    } else if (typeof originalRequestBody === 'object') {
+      originalBodyContent = JSON.stringify(originalRequestBody, null, 2);
+    }
+
+    let modDetailsHtml = '';
+    if (modificationDetails) {
+      modDetailsHtml = `
+        <div class="modification-details">
+          <strong>${getMessage('modificationDetails')}:</strong>
+          <div>规则: ${escapeHtml(modificationDetails.ruleName || '')}</div>
+          <div>类型: ${escapeHtml(modificationDetails.modificationType || '')}</div>
+          ${modificationDetails.mergedFields ? `<div>合并字段: ${modificationDetails.mergedFields.join(', ')}</div>` : ''}
+          ${modificationDetails.pattern ? `<div>查找: ${escapeHtml(modificationDetails.pattern)}</div>` : ''}
+          ${modificationDetails.replacement !== undefined ? `<div>替换为: ${escapeHtml(String(modificationDetails.replacement))}</div>` : ''}
+        </div>
+      `;
+    }
+
+    modificationHtml = `
+      <div class="tabs">
+        <button class="tab active" data-tab="modified">${getMessage('modifiedRequestBody')}</button>
+        <button class="tab" data-tab="original">${getMessage('originalRequestBody')}</button>
+      </div>
+      <div class="tab-content">
+        <div class="tab-pane active" data-pane="modified">
+          ${modDetailsHtml}
+          ${bodyHtml}
+        </div>
+        <div class="tab-pane" data-pane="original">
+          <pre class="${isJson ? 'json-highlighted' : ''}">${isJson ? highlightJson(originalBodyContent) : escapeHtml(originalBodyContent)}</pre>
+        </div>
+      </div>
+    `;
+  }
+
   return `
     <div class="detail-section">
       <div class="section-header">
-        <h3>${getMessage('requestBody')}</h3>
+        <h3>${getMessage('requestBody')}${modified ? ' <span class="modified-badge">✏️ ' + getMessage('requestModified') + '</span>' : ''}</h3>
         <button class="copy-btn" data-copy-target="request-body" title="${getMessage('copy') || 'Copy'}">
           <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor">
             <path d="M4 2h8a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2zm0 1a1 1 0 0 0-1 1v8a1 1 0 0 0 1 1h8a1 1 0 0 0 1-1V4a1 1 0 0 0-1-1H4z"/>
@@ -731,7 +777,7 @@ function renderRequestBody(requestBody) {
           </svg>
         </button>
       </div>
-      ${bodyHtml}
+      ${modificationHtml || bodyHtml}
     </div>
   `;
 }

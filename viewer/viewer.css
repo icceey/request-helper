@@ -482,6 +482,38 @@ main {
   vertical-align: middle;
 }
 
+.modified-badge {
+  display: inline-block;
+  margin-left: 8px;
+  padding: 2px 8px;
+  background: #fef7e0;
+  color: #f57c00;
+  border-radius: 12px;
+  font-size: 11px;
+  font-weight: 500;
+  vertical-align: middle;
+}
+
+.modification-details {
+  background: #f8f9fa;
+  border-left: 3px solid #f57c00;
+  padding: 12px;
+  margin-bottom: 12px;
+  border-radius: 4px;
+  font-size: 13px;
+}
+
+.modification-details strong {
+  display: block;
+  margin-bottom: 8px;
+  color: #f57c00;
+}
+
+.modification-details > div {
+  margin: 4px 0;
+  color: #5f6368;
+}
+
 .request-meta {
   font-size: 12px;
   color: #666;

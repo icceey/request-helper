@@ -451,3 +451,122 @@ input[type="text"] {
 .hidden {
   display: none !important;
 }
+
+/* Modify Configuration Styles */
+.modify-config-section {
+  margin-top: 12px;
+  padding-top: 12px;
+  border-top: 1px solid #e0e0e0;
+}
+
+.modify-config-section label {
+  display: block;
+  margin-bottom: 6px;
+  font-weight: 500;
+}
+
+#modify-value {
+  width: 100%;
+  padding: 10px;
+  border: 1px solid #dadce0;
+  border-radius: 4px;
+  font-family: 'Courier New', monospace;
+  font-size: 13px;
+  resize: vertical;
+  min-height: 120px;
+}
+
+#modify-value:focus {
+  outline: none;
+  border-color: #1a73e8;
+}
+
+#text-pattern,
+#text-replacement {
+  width: 100%;
+  margin-bottom: 12px;
+}
+
+.rule-badge.modify {
+  background: #fef7e0;
+  color: #f57c00;
+}
+
+/* Key-Value List Styles */
+.key-value-list,
+.key-list {
+  margin-bottom: 12px;
+}
+
+.key-value-item,
+.key-item {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 8px;
+  align-items: center;
+}
+
+.key-value-item input[type="text"] {
+  flex: 1;
+  padding: 8px 12px;
+  border: 1px solid #dadce0;
+  border-radius: 4px;
+  font-size: 13px;
+}
+
+.key-value-item input[type="text"]:first-child {
+  flex: 0.8; /* Key input slightly smaller */
+}
+
+.key-value-item input[type="text"]:last-of-type {
+  flex: 1.2; /* Value input slightly larger */
+}
+
+.key-item input[type="text"] {
+  flex: 1;
+  padding: 8px 12px;
+  border: 1px solid #dadce0;
+  border-radius: 4px;
+  font-size: 13px;
+}
+
+.key-value-item input:focus,
+.key-item input:focus {
+  outline: none;
+  border-color: #1a73e8;
+}
+
+.btn-remove {
+  padding: 6px 12px;
+  background: #f44336;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 12px;
+  white-space: nowrap;
+}
+
+.btn-remove:hover {
+  background: #d32f2f;
+}
+
+.btn-small {
+  padding: 8px 16px;
+  font-size: 13px;
+  background: #e8f0fe;
+  color: #1a73e8;
+  border: 1px solid #1a73e8;
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+.btn-small:hover {
+  background: #d2e3fc;
+}
+
+.key-value-item input::placeholder,
+.key-item input::placeholder {
+  color: #999;
+  font-style: italic;
+}

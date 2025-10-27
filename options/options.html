@@ -106,7 +106,7 @@
         <div class="form-group">
           <label for="rule-pattern" data-i18n="ruleCondition">Condition</label>
           <input type="text" id="rule-pattern" data-i18n-placeholder="urlRegexPlaceholder" placeholder="e.g., https://api\.example\.com/.*" />
-          <small class="hint">Enter a valid JavaScript regular expression pattern</small>
+          <small class="hint" data-i18n="regexPatternHint">Enter a valid JavaScript regular expression pattern</small>
         </div>
 
         <div class="form-group">
@@ -114,9 +114,78 @@
           <select id="rule-action">
             <option value="capture" data-i18n="capture">Capture</option>
             <option value="block" data-i18n="block">Block</option>
-            <!-- Future: more action types can be added here -->
+            <option value="modifyRequestBody" data-i18n="modifyRequestBody">Modify Request Body</option>
+            <option value="modifyQuery" data-i18n="modifyQuery">Modify Query</option>
+            <option value="modifyHeaders" data-i18n="modifyHeaders">Modify Headers</option>
           </select>
           <small class="hint" data-i18n="ruleActionHint">Choose whether to capture or block matching requests</small>
+        </div>
+
+        <!-- Modify Request Body configuration -->
+        <div id="modify-body-config" class="form-group hidden">
+          <label for="modify-type" data-i18n="modifyType">Modify Type</label>
+          <select id="modify-type">
+            <option value="json-merge" data-i18n="jsonMerge">JSON Merge</option>
+            <option value="json-replace" data-i18n="jsonReplace">JSON Replace</option>
+            <option value="text-replace" data-i18n="textReplace">Text Replace</option>
+          </select>
+          
+          <div id="json-modify-config" class="modify-config-section">
+            <label for="modify-value" data-i18n="modifyValue">Modification Value</label>
+            <textarea id="modify-value" rows="6" data-i18n-placeholder="modifyValuePlaceholder" placeholder="JSON object"></textarea>
+            <small class="hint" data-i18n="jsonObjectHint">Enter a valid JSON object for merge or replace</small>
+          </div>
+          
+          <div id="text-replace-config" class="modify-config-section hidden">
+            <label for="text-pattern" data-i18n="textReplacePattern">Find Text</label>
+            <input type="text" id="text-pattern" data-i18n-placeholder="textReplacePatternPlaceholder" placeholder="e.g., old_value" />
+            
+            <label for="text-replacement" data-i18n="textReplaceValue">Replace With</label>
+            <input type="text" id="text-replacement" data-i18n-placeholder="textReplaceValuePlaceholder" placeholder="e.g., new_value" />
+            <small class="hint" data-i18n="textReplaceHint">Find and replace text in request body</small>
+          </div>
+        </div>
+
+        <!-- Modify Query configuration -->
+        <div id="modify-query-config" class="form-group hidden">
+          <label for="query-operation" data-i18n="queryOperation">Query Operation</label>
+          <select id="query-operation">
+            <option value="addOrUpdate" data-i18n="addOrUpdate">Add or Update</option>
+            <option value="delete" data-i18n="deleteKey">Delete</option>
+          </select>
+          
+          <div id="query-add-config" class="modify-config-section">
+            <label data-i18n="queryParametersToAddOrUpdate">Query Parameters to Add/Update</label>
+            <div id="query-pairs-list" class="key-value-list"></div>
+            <button type="button" id="add-query-pair" class="btn btn-small" data-i18n="addParameter">+ Add Parameter</button>
+          </div>
+          
+          <div id="query-delete-config" class="modify-config-section hidden">
+            <label data-i18n="queryParametersToDelete">Query Parameters to Delete</label>
+            <div id="query-delete-list" class="key-list"></div>
+            <button type="button" id="add-query-delete-key" class="btn btn-small" data-i18n="addParameter">+ Add Parameter</button>
+          </div>
+        </div>
+
+        <!-- Modify Headers configuration -->
+        <div id="modify-headers-config" class="form-group hidden">
+          <label for="headers-operation" data-i18n="headersOperation">Headers Operation</label>
+          <select id="headers-operation">
+            <option value="addOrUpdate" data-i18n="addOrUpdate">Add or Update</option>
+            <option value="delete" data-i18n="deleteKey">Delete</option>
+          </select>
+          
+          <div id="headers-add-config" class="modify-config-section">
+            <label data-i18n="headersToAddOrUpdate">Headers to Add/Update</label>
+            <div id="headers-pairs-list" class="key-value-list"></div>
+            <button type="button" id="add-header-pair" class="btn btn-small" data-i18n="addHeader">+ Add Header</button>
+          </div>
+          
+          <div id="headers-delete-config" class="modify-config-section hidden">
+            <label data-i18n="headersToDelete">Headers to Delete</label>
+            <div id="headers-delete-list" class="key-list"></div>
+            <button type="button" id="add-header-delete-key" class="btn btn-small" data-i18n="addHeader">+ Add Header</button>
+          </div>
         </div>
       </div>
       <div class="modal-footer">

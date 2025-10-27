@@ -70,18 +70,18 @@ async function updateStats() {
 // 更新UI
 async function updateUI() {
   if (isCapturing) {
-    statusText.textContent = `${enabledRulesCount} ${getMessage('rulesCapturing')}`;
+    statusText.textContent = `${enabledRulesCount} ${getMessage('rulesRunning')}`;
     statusText.style.color = '#34a853';
-    toggleBtn.textContent = getMessage('stopCapture');
+    toggleBtn.textContent = getMessage('stopRunning');
     toggleBtn.classList.add('active');
     toggleBtn.disabled = false;
   } else {
     statusText.textContent = `${enabledRulesCount} ${getMessage('rulesReady')}`;
     statusText.style.color = '#666';
-    toggleBtn.textContent = getMessage('startCapture');
+    toggleBtn.textContent = getMessage('startRunning');
     toggleBtn.classList.remove('active');
     
-    // 如果没有启用的规则，禁用开始捕获按钮
+    // 如果没有启用的规则，禁用开始运行按钮
     if (enabledRulesCount === 0) {
       toggleBtn.disabled = true;
     } else {

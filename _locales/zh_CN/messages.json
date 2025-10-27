@@ -16,21 +16,21 @@
     "message": "条规则已就绪",
     "description": "规则就绪状态"
   },
-  "capturing": {
-    "message": "捕获中",
-    "description": "状态捕获中"
+  "running": {
+    "message": "运行中",
+    "description": "状态运行中"
   },
-  "rulesCapturing": {
-    "message": "条规则捕获中",
-    "description": "规则捕获状态"
+  "rulesRunning": {
+    "message": "条规则运行中",
+    "description": "规则运行状态"
   },
-  "startCapture": {
-    "message": "开始捕获",
-    "description": "开始捕获按钮"
+  "startRunning": {
+    "message": "开始运行",
+    "description": "开始运行按钮"
   },
-  "stopCapture": {
-    "message": "停止捕获",
-    "description": "停止捕获按钮"
+  "stopRunning": {
+    "message": "停止运行",
+    "description": "停止运行按钮"
   },
   "capturedRequests": {
     "message": "已捕获请求",
@@ -447,5 +447,177 @@
   "addNewRule": {
     "message": "添加新规则",
     "description": "添加规则对话框标题"
+  },
+  "modify": {
+    "message": "修改请求体",
+    "description": "修改请求体动作"
+  },
+  "modifyRequestBody": {
+    "message": "修改请求体",
+    "description": "修改请求体动作"
+  },
+  "modifyQuery": {
+    "message": "修改 Query",
+    "description": "修改Query动作"
+  },
+  "modifyHeaders": {
+    "message": "修改请求头",
+    "description": "修改请求头动作"
+  },
+  "modifyType": {
+    "message": "修改类型",
+    "description": "修改类型标签"
+  },
+  "jsonMerge": {
+    "message": "JSON 合并",
+    "description": "JSON合并修改类型"
+  },
+  "jsonReplace": {
+    "message": "JSON 替换",
+    "description": "JSON替换修改类型"
+  },
+  "textReplace": {
+    "message": "文本替换",
+    "description": "文本替换修改类型"
+  },
+  "modifyValue": {
+    "message": "修改内容",
+    "description": "修改内容标签"
+  },
+  "modifyValuePlaceholder": {
+    "message": "JSON对象 或 查找/替换文本",
+    "description": "修改内容占位符"
+  },
+  "textReplacePattern": {
+    "message": "查找文本",
+    "description": "文本替换查找标签"
+  },
+  "textReplaceValue": {
+    "message": "替换为",
+    "description": "文本替换内容标签"
+  },
+  "requestModified": {
+    "message": "请求已修改",
+    "description": "请求被修改提示"
+  },
+  "originalRequestBody": {
+    "message": "原始请求体",
+    "description": "原始请求体标签"
+  },
+  "modifiedRequestBody": {
+    "message": "修改后请求体",
+    "description": "修改后请求体标签"
+  },
+  "modificationDetails": {
+    "message": "修改详情",
+    "description": "修改详情标签"
+  },
+  "regexPatternHint": {
+    "message": "输入有效的 JavaScript 正则表达式",
+    "description": "正则表达式提示"
+  },
+  "jsonObjectHint": {
+    "message": "输入有效的 JSON 对象用于合并或替换",
+    "description": "JSON对象提示"
+  },
+  "textReplacePatternPlaceholder": {
+    "message": "例如：old_value",
+    "description": "文本替换查找占位符"
+  },
+  "textReplaceValuePlaceholder": {
+    "message": "例如：new_value",
+    "description": "文本替换内容占位符"
+  },
+  "textReplaceHint": {
+    "message": "在请求体中查找并替换文本",
+    "description": "文本替换提示"
+  },
+  "modifyTarget": {
+    "message": "修改目标",
+    "description": "修改目标标签"
+  },
+  "queryParameters": {
+    "message": "Query 参数",
+    "description": "Query参数标签"
+  },
+  "operationType": {
+    "message": "操作类型",
+    "description": "操作类型标签"
+  },
+  "addOrUpdate": {
+    "message": "添加/覆盖",
+    "description": "添加或覆盖操作"
+  },
+  "deleteKey": {
+    "message": "删除",
+    "description": "删除操作"
+  },
+  "keyValuePairs": {
+    "message": "键值对",
+    "description": "键值对标签"
+  },
+  "keyValuePairsHint": {
+    "message": "JSON 格式的键值对，例如：{\"key1\": \"value1\", \"key2\": \"value2\"}",
+    "description": "键值对提示"
+  },
+  "keysToDelete": {
+    "message": "要删除的键",
+    "description": "要删除的键标签"
+  },
+  "keysToDeleteHint": {
+    "message": "JSON 数组格式，例如：[\"key1\", \"key2\"]",
+    "description": "要删除的键提示"
+  },
+  "queryOperation": {
+    "message": "Query 操作",
+    "description": "Query操作标签"
+  },
+  "headersOperation": {
+    "message": "请求头操作",
+    "description": "请求头操作标签"
+  },
+  "addParameter": {
+    "message": "+ 添加参数",
+    "description": "添加参数按钮"
+  },
+  "addHeader": {
+    "message": "+ 添加请求头",
+    "description": "添加请求头按钮"
+  },
+  "remove": {
+    "message": "删除",
+    "description": "删除按钮"
+  },
+  "queryParametersToAddOrUpdate": {
+    "message": "要添加/覆盖的 Query 参数",
+    "description": "Query参数添加覆盖标签"
+  },
+  "queryParametersToDelete": {
+    "message": "要删除的 Query 参数",
+    "description": "Query参数删除标签"
+  },
+  "headersToAddOrUpdate": {
+    "message": "要添加/覆盖的请求头",
+    "description": "请求头添加覆盖标签"
+  },
+  "headersToDelete": {
+    "message": "要删除的请求头",
+    "description": "请求头删除标签"
+  },
+  "queryKeyPlaceholder": {
+    "message": "参数名",
+    "description": "Query参数键占位符"
+  },
+  "queryValuePlaceholder": {
+    "message": "参数值",
+    "description": "Query参数值占位符"
+  },
+  "headerKeyPlaceholder": {
+    "message": "请求头名称",
+    "description": "请求头键占位符"
+  },
+  "headerValuePlaceholder": {
+    "message": "请求头值",
+    "description": "请求头值占位符"
   }
 }

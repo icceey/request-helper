@@ -8,6 +8,20 @@
 
   console.log('🚀 RequestHelper interceptor initialized');
 
+  // 存储捕获规则
+  let captureRules = [];
+
+  // 监听规则更新
+  window.addEventListener('RequestHelperRules', function(event) {
+    captureRules = event.detail || [];
+    console.log('📋 RequestHelper rules updated:', captureRules.length);
+  });
+
+  // 请求规则（在脚本加载后发送）
+  setTimeout(() => {
+    window.dispatchEvent(new CustomEvent('RequestHelperGetRules'));
+  }, 50);
+
   // 生成唯一ID
   function generateRequestId() {
     return `${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
@@ -82,6 +96,237 @@
     }
   }
 
+  /**
+   * 匹配修改规则
+   * @param {string} url - 请求URL
+   * @param {string} method - 请求方法
+   * @returns {Object|null} - 匹配的规则或null
+   */
+  function matchModifyRule(url, method) {
+    if (!captureRules || captureRules.length === 0) {
+      return null;
+    }
+
+    // 按照优先级（数组顺序）匹配规则
+    for (const rule of captureRules) {
+      // 跳过禁用的规则
+      if (!rule.enabled) {
+        continue;
+      }
+
+      // 只处理三种修改动作
+      const actionType = rule.action.type;
+      if (actionType !== 'modifyRequestBody' && 
+          actionType !== 'modifyQuery' && 
+          actionType !== 'modifyHeaders') {
+        continue;
+      }
+
+      // 根据规则类型进行匹配
+      if (rule.type === 'url-regex') {
+        try {
+          const regex = new RegExp(rule.condition.pattern);
+          if (regex.test(url)) {
+            return rule;
+          }
+        } catch (error) {
+          console.error(`❌ Invalid regex pattern in rule ${rule.name}:`, error);
+        }
+      }
+    }
+
+    return null;
+  }
+
+  /**
+   * 应用请求体修改
+   * @param {any} originalBody - 原始请求体
+   * @param {Object} rule - 修改规则
+   * @returns {Object} - { modifiedBody, originalBody, modified, modificationDetails }
+   */
+  function applyBodyModification(originalBody, rule) {
+    if (!rule || !rule.action || !rule.action.modifications) {
+      return { modifiedBody: originalBody, modified: false };
+    }
+
+    const modifications = rule.action.modifications;
+    const requestBodyMod = modifications.requestBody;
+
+    if (!requestBodyMod) {
+      return { modifiedBody: originalBody, modified: false };
+    }
+
+    try {
+      let modifiedBody = originalBody;
+      const modificationDetails = {
+        ruleName: rule.name,
+        ruleId: rule.id,
+        modificationType: requestBodyMod.type
+      };
+
+      // 根据修改类型处理
+      switch (requestBodyMod.type) {
+        case 'json-merge': {
+          // JSON 合并
+          const original = typeof originalBody === 'string' 
+            ? JSON.parse(originalBody) 
+            : originalBody;
+          
+          if (typeof original !== 'object' || original === null) {
+            console.warn('⚠️ Cannot merge non-object JSON');
+            return { modifiedBody: originalBody, modified: false };
+          }
+
+          const mergeData = requestBodyMod.value;
+          modifiedBody = { ...original, ...mergeData };
+          modificationDetails.mergedFields = Object.keys(mergeData);
+          
+          break;
+        }
+
+        case 'json-replace': {
+          // JSON 替换
+          modifiedBody = requestBodyMod.value;
+          modificationDetails.replaced = true;
+          break;
+        }
+
+        case 'text-replace': {
+          // 文本替换（普通字符串替换，不使用正则）
+          const bodyStr = typeof originalBody === 'string' 
+            ? originalBody 
+            : JSON.stringify(originalBody);
+          
+          const pattern = requestBodyMod.pattern;
+          const replacement = requestBodyMod.replacement;
+          
+          if (pattern && replacement !== undefined) {
+            // 使用 replaceAll 进行全局替换（不使用正则）
+            modifiedBody = bodyStr.replaceAll(pattern, replacement);
+            modificationDetails.pattern = pattern;
+            modificationDetails.replacement = replacement;
+          }
+          break;
+        }
+
+        default:
+          console.warn('⚠️ Unknown modification type:', requestBodyMod.type);
+          return { modifiedBody: originalBody, modified: false };
+      }
+
+      console.log('✅ Request body modified by rule:', rule.name);
+      return {
+        modifiedBody,
+        originalBody,
+        modified: true,
+        modificationDetails
+      };
+
+    } catch (error) {
+      console.error('❌ Failed to apply body modification:', error);
+      return { modifiedBody: originalBody, modified: false };
+    }
+  }
+
+  // 应用Query参数修改
+  function applyQueryModification(url, rule) {
+    if (!rule || !rule.action || !rule.action.modifications) {
+      return { modifiedUrl: url, modified: false };
+    }
+
+    const modifications = rule.action.modifications;
+    const queryMod = modifications.query;
+
+    if (!queryMod) {
+      return { modifiedUrl: url, modified: false };
+    }
+
+    try {
+      const urlObj = new URL(url);
+      const modificationDetails = {
+        ruleName: rule.name,
+        ruleId: rule.id
+      };
+
+      if (queryMod.addOrUpdate) {
+        // 添加或更新查询参数
+        const params = queryMod.addOrUpdate;
+        for (const [key, value] of Object.entries(params)) {
+          urlObj.searchParams.set(key, value);
+        }
+        modificationDetails.addedOrUpdated = Object.keys(params);
+      } else if (queryMod.delete) {
+        // 删除查询参数
+        const keys = queryMod.delete;
+        for (const key of keys) {
+          urlObj.searchParams.delete(key);
+        }
+        modificationDetails.deleted = keys;
+      }
+
+      console.log('✅ Query modified by rule:', rule.name);
+      return {
+        modifiedUrl: urlObj.toString(),
+        originalUrl: url,
+        modified: true,
+        modificationDetails
+      };
+    } catch (error) {
+      console.error('❌ Failed to apply query modification:', error);
+      return { modifiedUrl: url, modified: false };
+    }
+  }
+
+  // 应用Headers修改
+  function applyHeadersModification(headers, rule) {
+    if (!rule || !rule.action || !rule.action.modifications) {
+      return { modifiedHeaders: headers, modified: false };
+    }
+
+    const modifications = rule.action.modifications;
+    const headersMod = modifications.headers;
+
+    if (!headersMod) {
+      return { modifiedHeaders: headers, modified: false };
+    }
+
+    try {
+      // 复制headers对象
+      const modifiedHeaders = { ...headers };
+      const modificationDetails = {
+        ruleName: rule.name,
+        ruleId: rule.id
+      };
+
+      if (headersMod.addOrUpdate) {
+        // 添加或更新请求头
+        const headersToAdd = headersMod.addOrUpdate;
+        for (const [key, value] of Object.entries(headersToAdd)) {
+          modifiedHeaders[key] = value;
+        }
+        modificationDetails.addedOrUpdated = Object.keys(headersToAdd);
+      } else if (headersMod.delete) {
+        // 删除请求头
+        const keysToDelete = headersMod.delete;
+        for (const key of keysToDelete) {
+          delete modifiedHeaders[key];
+        }
+        modificationDetails.deleted = keysToDelete;
+      }
+
+      console.log('✅ Headers modified by rule:', rule.name);
+      return {
+        modifiedHeaders,
+        originalHeaders: headers,
+        modified: true,
+        modificationDetails
+      };
+    } catch (error) {
+      console.error('❌ Failed to apply headers modification:', error);
+      return { modifiedHeaders: headers, modified: false };
+    }
+  }
+
   // ============= 拦截 XMLHttpRequest =============
   const OriginalXHR = window.XMLHttpRequest;
   const xhrRequestMap = new Map();
@@ -96,6 +341,9 @@
       url: null,
       headers: {},
       body: null,
+      originalBody: null,
+      modified: false,
+      modificationDetails: null,
       timestamp: Date.now()
     };
 
@@ -106,6 +354,21 @@
     xhr.open = function(method, url, ...args) {
       requestData.method = method;
       requestData.url = url;
+      
+      // 检查是否需要修改Query参数
+      const matchedRule = matchModifyRule(url, method);
+      if (matchedRule && matchedRule.action.type === 'modifyQuery') {
+        const queryModResult = applyQueryModification(url, matchedRule);
+        if (queryModResult.modified) {
+          // 使用修改后的URL
+          const modifiedUrl = queryModResult.modifiedUrl;
+          requestData.url = modifiedUrl;
+          requestData.urlModified = true;
+          requestData.urlModificationDetails = queryModResult.modificationDetails;
+          return originalOpen.apply(this, [method, modifiedUrl, ...args]);
+        }
+      }
+      
       return originalOpen.apply(this, [method, url, ...args]);
     };
 
@@ -119,9 +382,58 @@
     // 拦截 send
     const originalSend = xhr.send;
     xhr.send = function(body) {
+      let bodyToSend = body;
       requestData.body = body;
       requestData.sendTimestamp = Date.now();
-      return originalSend.apply(this, arguments);
+
+      // 检查是否有匹配的修改规则
+      const matchedRule = matchModifyRule(requestData.url, requestData.method);
+      
+      if (matchedRule) {
+        // 应用Headers修改
+        if (matchedRule.action.type === 'modifyHeaders') {
+          const headersModResult = applyHeadersModification(requestData.headers, matchedRule);
+          if (headersModResult.modified) {
+            // 应用修改后的headers（包括新增、更新和删除）
+            const modifications = matchedRule.action.modifications.headers;
+            
+            if (modifications.addOrUpdate) {
+              // 添加或更新headers
+              for (const [key, value] of Object.entries(modifications.addOrUpdate)) {
+                originalSetRequestHeader.call(xhr, key, value);
+                requestData.headers[key] = value;
+              }
+            }
+            
+            // 注意：XHR无法删除已设置的header，只能记录意图
+            requestData.headersModified = true;
+            requestData.headersModificationDetails = headersModResult.modificationDetails;
+          }
+        }
+        
+        // 应用请求体修改
+        if (matchedRule.action.type === 'modifyRequestBody') {
+          const modResult = applyBodyModification(body, matchedRule);
+          if (modResult.modified) {
+            bodyToSend = typeof modResult.modifiedBody === 'object' 
+              ? JSON.stringify(modResult.modifiedBody) 
+              : modResult.modifiedBody;
+            
+            requestData.originalBody = modResult.originalBody;
+            requestData.modified = true;
+            requestData.modificationDetails = modResult.modificationDetails;
+
+            // 如果是JSON修改，更新Content-Type
+            if (matchedRule.action.modifications.requestBody.type.startsWith('json')) {
+              if (!requestData.headers['Content-Type']) {
+                originalSetRequestHeader.call(xhr, 'Content-Type', 'application/json');
+              }
+            }
+          }
+        }
+      }
+
+      return originalSend.call(this, bodyToSend);
     };
 
     // 监听响应
@@ -139,6 +451,9 @@
               method: data.method,
               requestHeaders: data.headers,
               requestBody: data.body,
+              originalRequestBody: data.originalBody,
+              modified: data.modified,
+              modificationDetails: data.modificationDetails,
               statusCode: this.status,
               statusText: this.statusText,
               responseHeaders: this.getAllResponseHeaders(),
@@ -176,6 +491,15 @@
     const timestamp = Date.now();
 
     let requestBody = null;
+    let originalRequestBody = null;
+    let modified = false;
+    let modificationDetails = null;
+    let modifiedUrl = url; // 在外层声明
+    let urlModified = false;
+    let urlModificationDetails = null;
+    let headersModified = false;
+    let headersModificationDetails = null;
+
     if (options.body) {
       try {
         if (typeof options.body === 'string') {
@@ -194,9 +518,65 @@
       }
     }
 
+    // 检查是否有匹配的修改规则（移到外层）
+    const matchedRule = matchModifyRule(url, method);
+
+    if (matchedRule) {
+      // 应用Query修改
+      if (matchedRule.action.type === 'modifyQuery') {
+        const queryModResult = applyQueryModification(url, matchedRule);
+        if (queryModResult.modified) {
+          modifiedUrl = queryModResult.modifiedUrl;
+          urlModified = true;
+          urlModificationDetails = queryModResult.modificationDetails;
+        }
+      }
+      
+      // 应用Headers修改
+      if (matchedRule.action.type === 'modifyHeaders') {
+        const currentHeaders = options.headers || {};
+        const headersModResult = applyHeadersModification(currentHeaders, matchedRule);
+        if (headersModResult.modified) {
+          options = { ...options, headers: headersModResult.modifiedHeaders };
+          headersModified = true;
+          headersModificationDetails = headersModResult.modificationDetails;
+        }
+      }
+      
+      // 应用请求体修改
+      if (matchedRule.action.type === 'modifyRequestBody' && 
+          typeof requestBody === 'string' && 
+          requestBody !== '[FormData]' && 
+          requestBody !== '[Blob]' && 
+          requestBody !== '[ArrayBuffer]') {
+        const modResult = applyBodyModification(requestBody, matchedRule);
+        if (modResult.modified) {
+          const newBody = typeof modResult.modifiedBody === 'object'
+            ? JSON.stringify(modResult.modifiedBody)
+            : modResult.modifiedBody;
+          
+          // 创建新的options对象，修改body
+          options = { ...options, body: newBody };
+          
+          originalRequestBody = modResult.originalBody;
+          requestBody = newBody;
+          modified = true;
+          modificationDetails = modResult.modificationDetails;
+
+          // 如果是JSON修改，更新Content-Type
+          if (matchedRule.action.modifications.requestBody.type.startsWith('json')) {
+            options.headers = {
+              ...options.headers,
+              'Content-Type': 'application/json'
+            };
+          }
+        }
+      }
+    }
+
     try {
-      // 执行原始fetch
-      const response = await originalFetch.apply(this, arguments);
+      // 执行原始fetch（使用可能被修改的URL和options）
+      const response = await originalFetch.call(this, modifiedUrl, options);
       
       // 克隆响应以便读取body
       const clonedResponse = response.clone();
@@ -230,10 +610,17 @@
 
           const capturedData = {
             id: requestId,
-            url: url,
+            url: modifiedUrl, // 使用修改后的URL
             method: method,
             requestHeaders: options.headers || {},
             requestBody: requestBody,
+            originalRequestBody: originalRequestBody,
+            modified: modified,
+            modificationDetails: modificationDetails,
+            urlModified: urlModified,
+            urlModificationDetails: urlModificationDetails,
+            headersModified: headersModified,
+            headersModificationDetails: headersModificationDetails,
             statusCode: response.status,
             statusText: response.statusText,
             responseHeaders: responseHeaders,
@@ -259,6 +646,9 @@
         method: method,
         requestHeaders: options.headers || {},
         requestBody: requestBody,
+        originalRequestBody: originalRequestBody,
+        modified: modified,
+        modificationDetails: modificationDetails,
         error: err.message,
         timestamp: timestamp,
         duration: Date.now() - timestamp,

@@ -16,21 +16,21 @@
     "message": "rule(s) ready",
     "description": "Rules ready status"
   },
-  "capturing": {
-    "message": "Capturing",
-    "description": "Status capturing"
+  "running": {
+    "message": "Running",
+    "description": "Status running"
   },
-  "rulesCapturing": {
-    "message": "rule(s) capturing",
-    "description": "Rules capturing status"
+  "rulesRunning": {
+    "message": "rule(s) running",
+    "description": "Rules running status"
   },
-  "startCapture": {
-    "message": "Start Capture",
-    "description": "Button to start capture"
+  "startRunning": {
+    "message": "Start Running",
+    "description": "Button to start running"
   },
-  "stopCapture": {
-    "message": "Stop Capture",
-    "description": "Button to stop capture"
+  "stopRunning": {
+    "message": "Stop Running",
+    "description": "Button to stop running"
   },
   "capturedRequests": {
     "message": "Captured Requests",
@@ -447,5 +447,177 @@
   "addNewRule": {
     "message": "Add New Rule",
     "description": "Add rule dialog title"
+  },
+  "modify": {
+    "message": "Modify Request Body",
+    "description": "Modify request body action"
+  },
+  "modifyRequestBody": {
+    "message": "Modify Request Body",
+    "description": "Modify request body action"
+  },
+  "modifyQuery": {
+    "message": "Modify Query",
+    "description": "Modify query action"
+  },
+  "modifyHeaders": {
+    "message": "Modify Headers",
+    "description": "Modify headers action"
+  },
+  "modifyType": {
+    "message": "Modify Type",
+    "description": "Modify type label"
+  },
+  "jsonMerge": {
+    "message": "JSON Merge",
+    "description": "JSON merge modify type"
+  },
+  "jsonReplace": {
+    "message": "JSON Replace",
+    "description": "JSON replace modify type"
+  },
+  "textReplace": {
+    "message": "Text Replace",
+    "description": "Text replace modify type"
+  },
+  "modifyValue": {
+    "message": "Modification Value",
+    "description": "Modify value label"
+  },
+  "modifyValuePlaceholder": {
+    "message": "JSON object or find/replace text",
+    "description": "Modify value placeholder"
+  },
+  "textReplacePattern": {
+    "message": "Find Text",
+    "description": "Text replace pattern label"
+  },
+  "textReplaceValue": {
+    "message": "Replace With",
+    "description": "Text replace value label"
+  },
+  "requestModified": {
+    "message": "Request Modified",
+    "description": "Request modified indicator"
+  },
+  "originalRequestBody": {
+    "message": "Original Request Body",
+    "description": "Original request body label"
+  },
+  "modifiedRequestBody": {
+    "message": "Modified Request Body",
+    "description": "Modified request body label"
+  },
+  "modificationDetails": {
+    "message": "Modification Details",
+    "description": "Modification details label"
+  },
+  "regexPatternHint": {
+    "message": "Enter a valid JavaScript regular expression pattern",
+    "description": "Regex pattern hint"
+  },
+  "jsonObjectHint": {
+    "message": "Enter a valid JSON object for merge or replace",
+    "description": "JSON object hint"
+  },
+  "textReplacePatternPlaceholder": {
+    "message": "e.g., old_value",
+    "description": "Text replace pattern placeholder"
+  },
+  "textReplaceValuePlaceholder": {
+    "message": "e.g., new_value",
+    "description": "Text replace value placeholder"
+  },
+  "textReplaceHint": {
+    "message": "Find and replace text in request body",
+    "description": "Text replace hint"
+  },
+  "modifyTarget": {
+    "message": "Modify Target",
+    "description": "Modify target label"
+  },
+  "queryParameters": {
+    "message": "Query Parameters",
+    "description": "Query parameters label"
+  },
+  "operationType": {
+    "message": "Operation Type",
+    "description": "Operation type label"
+  },
+  "addOrUpdate": {
+    "message": "Add/Update",
+    "description": "Add or update operation"
+  },
+  "deleteKey": {
+    "message": "Delete",
+    "description": "Delete operation"
+  },
+  "keyValuePairs": {
+    "message": "Key-Value Pairs",
+    "description": "Key-value pairs label"
+  },
+  "keyValuePairsHint": {
+    "message": "JSON format key-value pairs, e.g., {\"key1\": \"value1\", \"key2\": \"value2\"}",
+    "description": "Key-value pairs hint"
+  },
+  "keysToDelete": {
+    "message": "Keys to Delete",
+    "description": "Keys to delete label"
+  },
+  "keysToDeleteHint": {
+    "message": "JSON array format, e.g., [\"key1\", \"key2\"]",
+    "description": "Keys to delete hint"
+  },
+  "queryOperation": {
+    "message": "Query Operation",
+    "description": "Query operation label"
+  },
+  "headersOperation": {
+    "message": "Headers Operation",
+    "description": "Headers operation label"
+  },
+  "addParameter": {
+    "message": "+ Add Parameter",
+    "description": "Add parameter button"
+  },
+  "addHeader": {
+    "message": "+ Add Header",
+    "description": "Add header button"
+  },
+  "remove": {
+    "message": "Remove",
+    "description": "Remove button"
+  },
+  "queryParametersToAddOrUpdate": {
+    "message": "Query Parameters to Add/Update",
+    "description": "Query parameters add/update label"
+  },
+  "queryParametersToDelete": {
+    "message": "Query Parameters to Delete",
+    "description": "Query parameters delete label"
+  },
+  "headersToAddOrUpdate": {
+    "message": "Headers to Add/Update",
+    "description": "Headers add/update label"
+  },
+  "headersToDelete": {
+    "message": "Headers to Delete",
+    "description": "Headers delete label"
+  },
+  "queryKeyPlaceholder": {
+    "message": "parameter_name",
+    "description": "Query parameter key placeholder"
+  },
+  "queryValuePlaceholder": {
+    "message": "value",
+    "description": "Query parameter value placeholder"
+  },
+  "headerKeyPlaceholder": {
+    "message": "Header-Name",
+    "description": "Header key placeholder"
+  },
+  "headerValuePlaceholder": {
+    "message": "header value",
+    "description": "Header value placeholder"
   }
 }

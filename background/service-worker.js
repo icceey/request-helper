@@ -92,6 +92,14 @@ async function startCapture() {
   // 更新角标为绿色
   const stats = await StorageManager.getStats();
   await updateBadge(true, stats.total || 0);
+  
+  // 通知所有 tab 助手已启动
+  const tabs = await chrome.tabs.query({});
+  tabs.forEach(tab => {
+    chrome.tabs.sendMessage(tab.id, { type: 'HELPER_STARTED' }).catch(() => {
+      // 忽略错误（某些tab可能无法接收消息）
+    });
+  });
 }
 
 // 停止捕获
