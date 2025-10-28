@@ -28,14 +28,16 @@ Page Request → interceptor-injected.js (MAIN world) → CustomEvent
 ### 3. Storage Architecture
 ```javascript
 // Storage keys in background/storage.js
-STORAGE_KEY = 'requests'  // Array of captured requests
-CONFIG_KEY = 'config'     // User configuration
-MAX_REQUESTS = 1000       // Default limit
+STORAGE_KEY = 'requests'      // Array of captured requests
+CONFIG_KEY = 'config'         // User configuration
+RULES_KEY = 'captureRules'    // Capture/modification rules
+MAX_REQUESTS = 1000           // Default limit
 ```
 
 **Critical pattern:** Always use `chrome.storage.local`, never sync (large data volumes)
 - Request matching uses `pendingRequests` Map with request IDs as keys
 - Notifications via `chrome.runtime.sendMessage({ type: 'REQUESTS_UPDATED' })`
+- Rules system: URL patterns + actions (capture, block, modify headers/body)
 
 ### 4. URL Filtering Pattern
 Uses wildcard patterns in `utils/filter.js`:
@@ -71,9 +73,15 @@ node scripts/build.js  # Simple file copy, no compilation
 
 ### Key Commands
 No test suite exists. Testing is manual via:
-- `test/test-page.html`: XHR/Fetch request triggers
-- `test/status-filter-demo.html`: UI feature demos
+- `test/test-page.html`: XHR/Fetch request triggers with various scenarios
 - Browser DevTools network tab comparison
+
+**Debugging emoji prefixes in console:**
+- 🚀 Interceptor initialization
+- 🔍 Request interception start
+- ✅ Successful capture
+- ❌ Error conditions
+- 📋 Rules update
 
 ## Critical Rules
 
@@ -117,14 +125,20 @@ All `chrome.runtime.sendMessage` calls use `{ type: string, ...data }` pattern:
 'GET_STATUS', 'START_CAPTURE', 'STOP_CAPTURE', 
 'GET_REQUESTS', 'CLEAR_REQUESTS', 'EXPORT_REQUESTS',
 'GET_CONFIG', 'SAVE_CONFIG', 'GET_STATS',
-'RESPONSE_BODY_CAPTURED'  // From content script
+'GET_RULES', 'SAVE_RULES', 'ADD_RULE', 'UPDATE_RULE', 'DELETE_RULE',
+'RESPONSE_BODY_CAPTURED',  // From content script
+'HELPER_STARTED'           // To content scripts on capture start
 ```
 
 ### 3. UI State Management
 - No framework used - vanilla JS with manual DOM updates
 - Viewer uses `allRequests`, `filteredRequests`, `selectedRequest` globals
-- Filtering in `handleFilter()` applies URL search, method, and status code filters
-- Status code filter uses `Set` for O(1) lookups: `selectedStatusCodes`
+- Filtering in `handleFilter()` applies multiple criteria:
+  - URL search (with configurable scopes: url, requestBody, responseBody)
+  - HTTP method filter (multiple selection via Set)
+  - Status code filter (uses Set for O(1) lookups: `selectedStatusCodes`)
+  - Capture rule filter (filter by which rule matched)
+  - Slow request filter (duration-based threshold)
 
 ### 4. Style Patterns
 - Status code colors: `.status-2xx` (green), `.status-3xx` (yellow), `.status-4xx` (orange), `.status-5xx` (red)
@@ -171,6 +185,15 @@ See recent status filter addition as reference.
   // Matches if: same URL, same method, timestamp within 5000ms
   // First checks pendingRequests Map, then falls back to recent stored requests
   ```
+- **Rules-based capture system**: Capture rules support pattern matching with actions
+  - Capture rules: Selective URL pattern matching for what to capture
+  - Block rules: Use declarativeNetRequest API (rule ID offset: 10000+) to block requests
+  - Modify rules: Header modification and request/response body alteration
+  - Rules stored in `RULES_KEY` and loaded at capture start
+- **Service worker restarts**: Service worker may restart and lose in-memory state
+  - On restart, `isCapturing` resets to false even if config.enabled was true
+  - Initialize() detects this and updates config.enabled to match actual state
+  - Use chrome.storage for persistent state, not class static variables
 
 ## File Organization
 ```
