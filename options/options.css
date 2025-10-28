@@ -465,7 +465,8 @@ input[type="text"] {
   font-weight: 500;
 }
 
-#modify-value {
+#modify-value,
+#response-body-modify-value {
   width: 100%;
   padding: 10px;
   border: 1px solid #dadce0;
@@ -476,7 +477,8 @@ input[type="text"] {
   min-height: 120px;
 }
 
-#modify-value:focus {
+#modify-value:focus,
+#response-body-modify-value:focus {
   outline: none;
   border-color: #1a73e8;
 }

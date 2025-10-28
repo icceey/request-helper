@@ -60,6 +60,23 @@ const addHeaderPairBtn = document.getElementById('add-header-pair');
 const headersDeleteList = document.getElementById('headers-delete-list');
 const addHeaderDeleteKeyBtn = document.getElementById('add-header-delete-key');
 
+const modifyResponseBodyConfigDiv = document.getElementById('modify-response-body-config');
+const responseBodyModifyTypeSelect = document.getElementById('response-body-modify-type');
+const responseBodyModifyValueTextarea = document.getElementById('response-body-modify-value');
+const responseBodyJsonConfig = document.getElementById('response-body-json-config');
+const responseBodyTextReplaceConfig = document.getElementById('response-body-text-replace-config');
+const responseBodyTextPatternInput = document.getElementById('response-body-text-pattern');
+const responseBodyTextReplacementInput = document.getElementById('response-body-text-replacement');
+
+const modifyResponseHeadersConfigDiv = document.getElementById('modify-response-headers-config');
+const responseHeadersOperationSelect = document.getElementById('response-headers-operation');
+const responseHeadersAddConfig = document.getElementById('response-headers-add-config');
+const responseHeadersDeleteConfig = document.getElementById('response-headers-delete-config');
+const responseHeadersPairsList = document.getElementById('response-headers-pairs-list');
+const addResponseHeaderPairBtn = document.getElementById('add-response-header-pair');
+const responseHeadersDeleteList = document.getElementById('response-headers-delete-list');
+const addResponseHeaderDeleteKeyBtn = document.getElementById('add-response-header-delete-key');
+
 // 状态变量
 let currentRules = [];
 let editingRuleId = null;
@@ -102,12 +119,16 @@ async function init() {
   modifyTypeSelect.addEventListener('change', handleModifyTypeChange);
   queryOperationSelect.addEventListener('change', handleQueryOperationChange);
   headersOperationSelect.addEventListener('change', handleHeadersOperationChange);
+  responseBodyModifyTypeSelect.addEventListener('change', handleResponseBodyModifyTypeChange);
+  responseHeadersOperationSelect.addEventListener('change', handleResponseHeadersOperationChange);
   
   // 添加键值对按钮
   addQueryPairBtn.addEventListener('click', () => addKeyValuePair(queryPairsList, 'query'));
   addQueryDeleteKeyBtn.addEventListener('click', () => addKeyItem(queryDeleteList, 'query'));
   addHeaderPairBtn.addEventListener('click', () => addKeyValuePair(headersPairsList, 'header'));
   addHeaderDeleteKeyBtn.addEventListener('click', () => addKeyItem(headersDeleteList, 'header'));
+  addResponseHeaderPairBtn.addEventListener('click', () => addKeyValuePair(responseHeadersPairsList, 'header'));
+  addResponseHeaderDeleteKeyBtn.addEventListener('click', () => addKeyItem(responseHeadersDeleteList, 'header'));
 }
 
 // 处理动作类型变化
@@ -118,6 +139,8 @@ function handleActionTypeChange() {
   modifyBodyConfigDiv.classList.add('hidden');
   modifyQueryConfigDiv.classList.add('hidden');
   modifyHeadersConfigDiv.classList.add('hidden');
+  modifyResponseBodyConfigDiv.classList.add('hidden');
+  modifyResponseHeadersConfigDiv.classList.add('hidden');
   
   // 根据选择显示对应区域
   if (actionType === 'modifyRequestBody') {
@@ -129,6 +152,12 @@ function handleActionTypeChange() {
   } else if (actionType === 'modifyHeaders') {
     modifyHeadersConfigDiv.classList.remove('hidden');
     handleHeadersOperationChange();
+  } else if (actionType === 'modifyResponseBody') {
+    modifyResponseBodyConfigDiv.classList.remove('hidden');
+    handleResponseBodyModifyTypeChange();
+  } else if (actionType === 'modifyResponseHeaders') {
+    modifyResponseHeadersConfigDiv.classList.remove('hidden');
+    handleResponseHeadersOperationChange();
   }
 }
 
@@ -165,6 +194,30 @@ function handleHeadersOperationChange() {
   } else {
     headersAddConfig.classList.remove('hidden');
     headersDeleteConfig.classList.add('hidden');
+  }
+}
+
+// 处理响应体修改类型变化
+function handleResponseBodyModifyTypeChange() {
+  const modifyType = responseBodyModifyTypeSelect.value;
+  if (modifyType === 'text-replace') {
+    responseBodyJsonConfig.classList.add('hidden');
+    responseBodyTextReplaceConfig.classList.remove('hidden');
+  } else {
+    responseBodyJsonConfig.classList.remove('hidden');
+    responseBodyTextReplaceConfig.classList.add('hidden');
+  }
+}
+
+// 处理响应头操作变化
+function handleResponseHeadersOperationChange() {
+  const operation = responseHeadersOperationSelect.value;
+  if (operation === 'delete') {
+    responseHeadersAddConfig.classList.add('hidden');
+    responseHeadersDeleteConfig.classList.remove('hidden');
+  } else {
+    responseHeadersAddConfig.classList.remove('hidden');
+    responseHeadersDeleteConfig.classList.add('hidden');
   }
 }
 
@@ -422,7 +475,9 @@ function getRuleActionName(actionType) {
     'block': getMessage('block'),
     'modifyRequestBody': getMessage('modifyRequestBody'),
     'modifyQuery': getMessage('modifyQuery'),
-    'modifyHeaders': getMessage('modifyHeaders')
+    'modifyHeaders': getMessage('modifyHeaders'),
+    'modifyResponseBody': getMessage('modifyResponseBody'),
+    'modifyResponseHeaders': getMessage('modifyResponseHeaders')
   };
   return names[actionType] || actionType;
 }
@@ -506,6 +561,26 @@ function openRuleModal(ruleId = null) {
         headersOperationSelect.value = 'addOrUpdate';
         populateKeyValuePairs(headersPairsList, headersMod.addOrUpdate, 'header');
       }
+    } else if (rule.action.type === 'modifyResponseBody' && rule.action.modifications?.responseBody) {
+      const respBodyMod = rule.action.modifications.responseBody;
+      responseBodyModifyTypeSelect.value = respBodyMod.type;
+      
+      if (respBodyMod.type === 'text-replace') {
+        responseBodyTextPatternInput.value = respBodyMod.pattern || '';
+        responseBodyTextReplacementInput.value = respBodyMod.replacement || '';
+      } else {
+        responseBodyModifyValueTextarea.value = JSON.stringify(respBodyMod.value, null, 2);
+      }
+    } else if (rule.action.type === 'modifyResponseHeaders' && rule.action.modifications?.responseHeaders) {
+      const respHeadersMod = rule.action.modifications.responseHeaders;
+      
+      if (respHeadersMod.delete) {
+        responseHeadersOperationSelect.value = 'delete';
+        populateKeys(responseHeadersDeleteList, respHeadersMod.delete, 'header');
+      } else if (respHeadersMod.addOrUpdate) {
+        responseHeadersOperationSelect.value = 'addOrUpdate';
+        populateKeyValuePairs(responseHeadersPairsList, respHeadersMod.addOrUpdate, 'header');
+      }
     }
   } else {
     // 新建模式
@@ -521,12 +596,19 @@ function openRuleModal(ruleId = null) {
     textReplacementInput.value = '';
     queryOperationSelect.value = 'addOrUpdate';
     headersOperationSelect.value = 'addOrUpdate';
+    responseBodyModifyTypeSelect.value = 'json-merge';
+    responseBodyModifyValueTextarea.value = '';
+    responseBodyTextPatternInput.value = '';
+    responseBodyTextReplacementInput.value = '';
+    responseHeadersOperationSelect.value = 'addOrUpdate';
     
     // 初始化空的键值对列表
     populateKeyValuePairs(queryPairsList, {}, 'query');
     populateKeys(queryDeleteList, [], 'query');
     populateKeyValuePairs(headersPairsList, {}, 'header');
     populateKeys(headersDeleteList, [], 'header');
+    populateKeyValuePairs(responseHeadersPairsList, {}, 'header');
+    populateKeys(responseHeadersDeleteList, [], 'header');
   }
   
   // 更新 UI 显示
@@ -683,6 +765,79 @@ async function handleSaveRule() {
       
       rule.action.modifications = {
         headers: {
+          addOrUpdate: pairs
+        }
+      };
+    }
+  } else if (actionType === 'modifyResponseBody') {
+    const modifyType = responseBodyModifyTypeSelect.value;
+    
+    if (modifyType === 'text-replace') {
+      const textPattern = responseBodyTextPatternInput.value.trim();
+      const textReplacement = responseBodyTextReplacementInput.value;
+      
+      if (!textPattern) {
+        showMessage('查找文本不能为空', 'error');
+        return;
+      }
+      
+      rule.action.modifications = {
+        responseBody: {
+          type: 'text-replace',
+          pattern: textPattern,
+          replacement: textReplacement
+        }
+      };
+    } else {
+      // json-merge 或 json-replace
+      const modifyValue = responseBodyModifyValueTextarea.value.trim();
+      
+      if (!modifyValue) {
+        showMessage('修改内容不能为空', 'error');
+        return;
+      }
+      
+      // 验证 JSON
+      try {
+        const jsonValue = JSON.parse(modifyValue);
+        rule.action.modifications = {
+          responseBody: {
+            type: modifyType,
+            value: jsonValue
+          }
+        };
+      } catch (error) {
+        showMessage('无效的 JSON 格式: ' + error.message, 'error');
+        return;
+      }
+    }
+  } else if (actionType === 'modifyResponseHeaders') {
+    const operation = responseHeadersOperationSelect.value;
+    
+    if (operation === 'delete') {
+      const deleteKeys = getKeysFromContainer(responseHeadersDeleteList);
+      
+      if (deleteKeys.length === 0) {
+        showMessage('请至少添加一个要删除的响应头', 'error');
+        return;
+      }
+      
+      rule.action.modifications = {
+        responseHeaders: {
+          delete: deleteKeys
+        }
+      };
+    } else {
+      // addOrUpdate
+      const pairs = getKeyValuePairsFromContainer(responseHeadersPairsList);
+      
+      if (Object.keys(pairs).length === 0) {
+        showMessage('请至少添加一个响应头', 'error');
+        return;
+      }
+      
+      rule.action.modifications = {
+        responseHeaders: {
           addOrUpdate: pairs
         }
       };

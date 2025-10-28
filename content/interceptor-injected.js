@@ -114,11 +114,13 @@
         continue;
       }
 
-      // 只处理三种修改动作
+      // 处理所有修改动作
       const actionType = rule.action.type;
       if (actionType !== 'modifyRequestBody' && 
           actionType !== 'modifyQuery' && 
-          actionType !== 'modifyHeaders') {
+          actionType !== 'modifyHeaders' &&
+          actionType !== 'modifyResponseBody' &&
+          actionType !== 'modifyResponseHeaders') {
         continue;
       }
 
@@ -306,12 +308,26 @@
         }
         modificationDetails.addedOrUpdated = Object.keys(headersToAdd);
       } else if (headersMod.delete) {
-        // 删除请求头
+        // 删除请求头（大小写不敏感）
         const keysToDelete = headersMod.delete;
-        for (const key of keysToDelete) {
-          delete modifiedHeaders[key];
+        const actuallyDeleted = [];
+        for (const keyToDelete of keysToDelete) {
+          const lowerKeyToDelete = keyToDelete.toLowerCase();
+          // 查找并删除匹配的key（不区分大小写）
+          for (const existingKey of Object.keys(modifiedHeaders)) {
+            if (existingKey.toLowerCase() === lowerKeyToDelete) {
+              delete modifiedHeaders[existingKey];
+              actuallyDeleted.push(existingKey);
+              break;
+            }
+          }
         }
-        modificationDetails.deleted = keysToDelete;
+        modificationDetails.deleted = actuallyDeleted;
+        
+        // 如果没有删除任何header，返回未修改
+        if (actuallyDeleted.length === 0) {
+          return { modifiedHeaders: headers, modified: false };
+        }
       }
 
       console.log('✅ Headers modified by rule:', rule.name);
@@ -323,6 +339,154 @@
       };
     } catch (error) {
       console.error('❌ Failed to apply headers modification:', error);
+      return { modifiedHeaders: headers, modified: false };
+    }
+  }
+
+  // 应用响应体修改
+  function applyResponseBodyModification(originalBody, rule) {
+    if (!rule || !rule.action || !rule.action.modifications) {
+      return { modifiedBody: originalBody, modified: false };
+    }
+
+    const modifications = rule.action.modifications;
+    const responseBodyMod = modifications.responseBody;
+
+    if (!responseBodyMod) {
+      return { modifiedBody: originalBody, modified: false };
+    }
+
+    try {
+      let modifiedBody = originalBody;
+      const modificationDetails = {
+        ruleName: rule.name,
+        ruleId: rule.id,
+        modificationType: responseBodyMod.type
+      };
+
+      // 根据修改类型处理
+      switch (responseBodyMod.type) {
+        case 'json-merge': {
+          // JSON 合并
+          const original = typeof originalBody === 'string' 
+            ? JSON.parse(originalBody) 
+            : originalBody;
+          
+          if (typeof original !== 'object' || original === null) {
+            console.warn('⚠️ Cannot merge non-object JSON');
+            return { modifiedBody: originalBody, modified: false };
+          }
+
+          const mergeData = responseBodyMod.value;
+          modifiedBody = { ...original, ...mergeData };
+          modificationDetails.mergedFields = Object.keys(mergeData);
+          
+          break;
+        }
+
+        case 'json-replace': {
+          // JSON 替换
+          modifiedBody = responseBodyMod.value;
+          modificationDetails.replaced = true;
+          break;
+        }
+
+        case 'text-replace': {
+          // 文本替换
+          const bodyStr = typeof originalBody === 'string' 
+            ? originalBody 
+            : JSON.stringify(originalBody);
+          
+          const pattern = responseBodyMod.pattern;
+          const replacement = responseBodyMod.replacement;
+          
+          if (pattern && replacement !== undefined) {
+            modifiedBody = bodyStr.replaceAll(pattern, replacement);
+            modificationDetails.pattern = pattern;
+            modificationDetails.replacement = replacement;
+          }
+          break;
+        }
+
+        default:
+          console.warn('⚠️ Unknown response modification type:', responseBodyMod.type);
+          return { modifiedBody: originalBody, modified: false };
+      }
+
+      console.log('✅ Response body modified by rule:', rule.name);
+      return {
+        modifiedBody,
+        originalBody,
+        modified: true,
+        modificationDetails
+      };
+
+    } catch (error) {
+      console.error('❌ Failed to apply response body modification:', error);
+      return { modifiedBody: originalBody, modified: false };
+    }
+  }
+
+  // 应用响应头修改
+  function applyResponseHeadersModification(headers, rule) {
+    if (!rule || !rule.action || !rule.action.modifications) {
+      return { modifiedHeaders: headers, modified: false };
+    }
+
+    const modifications = rule.action.modifications;
+    const responseHeadersMod = modifications.responseHeaders;
+
+    if (!responseHeadersMod) {
+      return { modifiedHeaders: headers, modified: false };
+    }
+
+    try {
+      // 复制headers对象
+      const modifiedHeaders = { ...headers };
+      const modificationDetails = {
+        ruleName: rule.name,
+        ruleId: rule.id
+      };
+
+      if (responseHeadersMod.addOrUpdate) {
+        // 添加或更新响应头
+        const headersToAdd = responseHeadersMod.addOrUpdate;
+        for (const [key, value] of Object.entries(headersToAdd)) {
+          modifiedHeaders[key] = value;
+        }
+        modificationDetails.addedOrUpdated = Object.keys(headersToAdd);
+      } else if (responseHeadersMod.delete) {
+        // 删除响应头（大小写不敏感）
+        const keysToDelete = responseHeadersMod.delete;
+        const actuallyDeleted = [];
+        for (const keyToDelete of keysToDelete) {
+          const lowerKeyToDelete = keyToDelete.toLowerCase();
+          // 查找并删除匹配的key（不区分大小写）
+          for (const existingKey of Object.keys(modifiedHeaders)) {
+            if (existingKey.toLowerCase() === lowerKeyToDelete) {
+              delete modifiedHeaders[existingKey];
+              actuallyDeleted.push(existingKey);
+              break;
+            }
+          }
+        }
+        modificationDetails.deleted = actuallyDeleted;
+        
+        // 如果没有删除任何header，返回未修改
+        if (actuallyDeleted.length === 0) {
+          return { modifiedHeaders: headers, modified: false };
+        }
+      }
+
+      console.log('✅ Response headers modified by rule:', rule.name);
+      return {
+        modifiedHeaders,
+        originalHeaders: headers,
+        modified: true,
+        modificationDetails
+      };
+    } catch (error) {
+      console.error('❌ Failed to apply response headers modification:', error);
       return { modifiedHeaders: headers, modified: false };
     }
   }
@@ -375,6 +539,25 @@
     // 拦截 setRequestHeader
     const originalSetRequestHeader = xhr.setRequestHeader;
     xhr.setRequestHeader = function(header, value) {
+      // 检查是否有删除该header的规则
+      const matchedRule = matchModifyRule(requestData.url || window.location.href, requestData.method || 'GET');
+      
+      if (matchedRule && matchedRule.action.type === 'modifyHeaders') {
+        const modifications = matchedRule.action.modifications.headers;
+        if (modifications && modifications.delete) {
+          // 检查当前header是否在删除列表中（大小写不敏感）
+          const shouldDelete = modifications.delete.some(
+            keyToDelete => keyToDelete.toLowerCase() === header.toLowerCase()
+          );
+          
+          if (shouldDelete) {
+            // 不设置这个header，但记录到requestData用于捕获
+            console.log(`🚫 Blocked setting header: ${header} (deleted by rule)`);
+            return; // 不调用原始的setRequestHeader
+          }
+        }
+      }
+      
       requestData.headers[header] = value;
       return originalSetRequestHeader.apply(this, arguments);
     };
@@ -394,7 +577,7 @@
         if (matchedRule.action.type === 'modifyHeaders') {
           const headersModResult = applyHeadersModification(requestData.headers, matchedRule);
           if (headersModResult.modified) {
-            // 应用修改后的headers（包括新增、更新和删除）
+            // 应用修改后的headers（包括新增和更新，删除已在setRequestHeader中处理）
             const modifications = matchedRule.action.modifications.headers;
             
             if (modifications.addOrUpdate) {
@@ -405,7 +588,6 @@
               }
             }
             
-            // 注意：XHR无法删除已设置的header，只能记录意图
             requestData.headersModified = true;
             requestData.headersModificationDetails = headersModResult.modificationDetails;
           }
@@ -436,6 +618,62 @@
       return originalSend.call(this, bodyToSend);
     };
 
+    // 拦截响应头获取方法（用于删除响应头）
+    const originalGetResponseHeader = xhr.getResponseHeader;
+    const originalGetAllResponseHeaders = xhr.getAllResponseHeaders;
+    
+    xhr.getResponseHeader = function(header) {
+      const value = originalGetResponseHeader.call(this, header);
+      
+      // 检查是否有删除该响应头的规则
+      const matchedRule = matchModifyRule(requestData.url, requestData.method);
+      if (matchedRule && matchedRule.action.type === 'modifyResponseHeaders') {
+        const modifications = matchedRule.action.modifications.responseHeaders;
+        if (modifications && modifications.delete) {
+          // 检查当前header是否在删除列表中（大小写不敏感）
+          const shouldDelete = modifications.delete.some(
+            keyToDelete => keyToDelete.toLowerCase() === header.toLowerCase()
+          );
+          
+          if (shouldDelete) {
+            return null; // 返回null表示header不存在
+          }
+        }
+      }
+      
+      return value;
+    };
+    
+    xhr.getAllResponseHeaders = function() {
+      const allHeaders = originalGetAllResponseHeaders.call(this);
+      
+      // 检查是否有删除响应头的规则
+      const matchedRule = matchModifyRule(requestData.url, requestData.method);
+      if (matchedRule && matchedRule.action.type === 'modifyResponseHeaders') {
+        const modifications = matchedRule.action.modifications.responseHeaders;
+        if (modifications && modifications.delete) {
+          // 解析所有headers
+          const headerLines = allHeaders.split('\r\n').filter(line => line.trim());
+          const filteredLines = headerLines.filter(line => {
+            const colonIndex = line.indexOf(':');
+            if (colonIndex === -1) return true;
+            
+            const headerName = line.substring(0, colonIndex).trim();
+            // 检查是否应该删除（大小写不敏感）
+            const shouldDelete = modifications.delete.some(
+              keyToDelete => keyToDelete.toLowerCase() === headerName.toLowerCase()
+            );
+            
+            return !shouldDelete;
+          });
+          
+          return filteredLines.join('\r\n') + (filteredLines.length > 0 ? '\r\n' : '');
+        }
+      }
+      
+      return allHeaders;
+    };
+
     // 监听响应
     xhr.addEventListener('readystatechange', function() {
       if (this.readyState === 4) {
@@ -443,7 +681,53 @@
         if (data) {
           try {
             const contentType = this.getResponseHeader('Content-Type');
-            const responseBody = this.responseText || this.response;
+            let responseBody = this.responseText || this.response;
+            let originalResponseBody = responseBody;
+            let responseModified = false;
+            let responseModificationDetails = null;
+            
+            // 检查是否需要修改响应
+            const responseRule = matchModifyRule(data.url, data.method);
+            
+            // 检查响应体修改
+            if (responseRule && responseRule.action.type === 'modifyResponseBody') {
+              const modResult = applyResponseBodyModification(responseBody, responseRule);
+              if (modResult.modified) {
+                const modifiedBody = typeof modResult.modifiedBody === 'object'
+                  ? JSON.stringify(modResult.modifiedBody)
+                  : modResult.modifiedBody;
+                
+                // 重写响应属性
+                Object.defineProperty(xhr, 'responseText', {
+                  value: modifiedBody,
+                  writable: false,
+                  configurable: true
+                });
+                Object.defineProperty(xhr, 'response', {
+                  value: modifiedBody,
+                  writable: false,
+                  configurable: true
+                });
+                
+                originalResponseBody = modResult.originalBody;
+                responseBody = modifiedBody;
+                responseModified = true;
+                responseModificationDetails = modResult.modificationDetails;
+              }
+            }
+            
+            // 检查响应头修改（删除操作）
+            if (responseRule && responseRule.action.type === 'modifyResponseHeaders') {
+              const modifications = responseRule.action.modifications.responseHeaders;
+              if (modifications && modifications.delete && modifications.delete.length > 0) {
+                responseModified = true;
+                responseModificationDetails = {
+                  ruleName: responseRule.name,
+                  ruleId: responseRule.id,
+                  deleted: modifications.delete
+                };
+              }
+            }
             
             const capturedData = {
               id: data.id,
@@ -458,6 +742,9 @@
               statusText: this.statusText,
               responseHeaders: this.getAllResponseHeaders(),
               responseBody: parseResponseBody(truncateBody(responseBody), contentType),
+              originalResponseBody: responseModified ? parseResponseBody(truncateBody(originalResponseBody), contentType) : undefined,
+              responseModified: responseModified,
+              responseModificationDetails: responseModificationDetails,
               contentType: contentType,
               timestamp: data.timestamp,
               duration: Date.now() - data.sendTimestamp,
@@ -576,12 +863,86 @@
 
     try {
       // 执行原始fetch（使用可能被修改的URL和options）
-      const response = await originalFetch.call(this, modifiedUrl, options);
+      let response = await originalFetch.call(this, modifiedUrl, options);
       
-      // 克隆响应以便读取body
+      // 检查是否需要修改响应
+      const responseRule = matchModifyRule(modifiedUrl, method);
+      let responseModified = false;
+      let responseModificationDetails = null;
+      let originalResponseBody = null;
+      
+      if (responseRule && (responseRule.action.type === 'modifyResponseBody' || responseRule.action.type === 'modifyResponseHeaders')) {
+        const clonedForModification = response.clone();
+        const contentType = response.headers.get('Content-Type');
+        
+        // 读取原始响应体
+        let responseBody;
+        if (contentType && contentType.includes('application/json')) {
+          try {
+            responseBody = await clonedForModification.json();
+          } catch {
+            responseBody = await clonedForModification.text();
+          }
+        } else {
+          responseBody = await clonedForModification.text();
+        }
+        
+        let modifiedBody = responseBody;
+        let modifiedHeaders = {};
+        response.headers.forEach((value, key) => {
+          modifiedHeaders[key] = value;
+        });
+        
+        // 应用响应体修改
+        if (responseRule.action.type === 'modifyResponseBody') {
+          const modResult = applyResponseBodyModification(responseBody, responseRule);
+          if (modResult.modified) {
+            modifiedBody = typeof modResult.modifiedBody === 'object'
+              ? JSON.stringify(modResult.modifiedBody)
+              : modResult.modifiedBody;
+            originalResponseBody = modResult.originalBody;
+            responseModified = true;
+            responseModificationDetails = modResult.modificationDetails;
+          }
+        }
+        
+        // 应用响应头修改
+        if (responseRule.action.type === 'modifyResponseHeaders') {
+          const headersModResult = applyResponseHeadersModification(modifiedHeaders, responseRule);
+          if (headersModResult.modified) {
+            modifiedHeaders = headersModResult.modifiedHeaders;
+            responseModified = true;
+            responseModificationDetails = headersModResult.modificationDetails;
+          }
+        }
+        
+        // 如果有修改，创建新的Response
+        if (responseModified) {
+          // 确保body是字符串或可序列化的格式
+          let finalBody = modifiedBody;
+          if (typeof modifiedBody === 'object' && modifiedBody !== null) {
+            // 如果是对象，转换为JSON字符串
+            finalBody = JSON.stringify(modifiedBody);
+          }
+          
+          // 将headers对象转换为Headers实例
+          const newHeaders = new Headers();
+          for (const [key, value] of Object.entries(modifiedHeaders)) {
+            newHeaders.append(key, value);
+          }
+          
+          response = new Response(finalBody, {
+            status: response.status,
+            statusText: response.statusText,
+            headers: newHeaders
+          });
+        }
+      }
+      
+      // 克隆响应以便读取body（用于捕获）
       const clonedResponse = response.clone();
       
-      // 异步读取响应体
+      // 异步读取响应体用于捕获
       (async () => {
         try {
           const contentType = response.headers.get('Content-Type');
@@ -625,6 +986,9 @@
             statusText: response.statusText,
             responseHeaders: responseHeaders,
             responseBody: parseResponseBody(truncateBody(responseBody), contentType),
+            originalResponseBody: originalResponseBody ? parseResponseBody(truncateBody(originalResponseBody), contentType) : undefined,
+            responseModified: responseModified,
+            responseModificationDetails: responseModificationDetails,
             contentType: contentType,
             timestamp: timestamp,
             duration: Date.now() - timestamp,

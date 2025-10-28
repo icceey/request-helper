@@ -464,6 +464,14 @@
     "message": "修改请求头",
     "description": "修改请求头动作"
   },
+  "modifyResponseBody": {
+    "message": "修改响应体",
+    "description": "修改响应体动作"
+  },
+  "modifyResponseHeaders": {
+    "message": "修改响应头",
+    "description": "修改响应头动作"
+  },
   "modifyType": {
     "message": "修改类型",
     "description": "修改类型标签"

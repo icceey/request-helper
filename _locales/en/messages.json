@@ -464,6 +464,14 @@
     "message": "Modify Headers",
     "description": "Modify headers action"
   },
+  "modifyResponseBody": {
+    "message": "Modify Response Body",
+    "description": "Modify response body action"
+  },
+  "modifyResponseHeaders": {
+    "message": "Modify Response Headers",
+    "description": "Modify response headers action"
+  },
   "modifyType": {
     "message": "Modify Type",
     "description": "Modify type label"
