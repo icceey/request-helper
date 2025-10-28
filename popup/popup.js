@@ -19,8 +19,6 @@ let enabledRulesCount = 0;
 
 // 初始化
 async function init() {
-  console.log('Popup initialized');
-  
   // 翻译页面
   translatePage();
   
@@ -92,8 +90,6 @@ async function updateUI() {
 
 // 切换捕获状态
 async function handleToggle() {
-  console.log('Toggle capture');
-  
   try {
     const messageType = isCapturing ? 'STOP_CAPTURE' : 'START_CAPTURE';
     const response = await chrome.runtime.sendMessage({ type: messageType });
@@ -110,10 +106,7 @@ async function handleToggle() {
 
 // 查看请求列表
 function handleViewRequests() {
-  console.log('View requests');
-  
   // 创建一个新标签页显示请求列表
-  // TODO: 创建专门的请求列表页面
   chrome.tabs.create({
     url: chrome.runtime.getURL('viewer/viewer.html')
   });
@@ -145,8 +138,6 @@ function showToast(message, type = 'success') {
 
 // 清空数据
 async function handleClear() {
-  console.log('Clear data');
-  
   try {
     const response = await chrome.runtime.sendMessage({ type: 'CLEAR_REQUESTS' });
     

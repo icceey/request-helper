@@ -92,8 +92,6 @@ const DEFAULT_CONFIG = {
 
 // 初始化
 async function init() {
-  console.log('Options page initialized');
-  
   // 翻译页面
   translatePage();
   
@@ -369,8 +367,6 @@ function switchTab(tabId) {
 
 // 加载配置
 async function loadConfig() {
-  console.log('Loading config');
-  
   try {
     const response = await chrome.runtime.sendMessage({ type: 'GET_STATUS' });
     
@@ -395,8 +391,6 @@ async function loadConfig() {
 
 // 加载规则
 async function loadRules() {
-  console.log('Loading rules');
-  
   try {
     const response = await chrome.runtime.sendMessage({ type: 'GET_RULES' });
     
@@ -942,8 +936,6 @@ async function moveRuleDown(ruleId) {
 
 // 保存基础配置
 async function handleSave() {
-  console.log('Saving config');
-  
   try {
     const maxRequests = parseInt(maxRequestsInput.value, 10);
     if (isNaN(maxRequests) || maxRequests < 10 || maxRequests > 10000) {
@@ -976,8 +968,6 @@ async function handleSave() {
 
 // 恢复默认配置
 async function handleReset() {
-  console.log('Resetting to default config');
-  
   if (!confirm(getMessage('confirmClear'))) {
     return;
   }

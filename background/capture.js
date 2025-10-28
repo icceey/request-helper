@@ -203,7 +203,6 @@ export class RequestCapture {
     };
 
     this.pendingRequests.set(details.requestId, requestData);
-    console.log('Request started:', details.requestId, details.url, 'Matched rule:', matchedRule.name);
   }
 
   /**
@@ -265,8 +264,6 @@ export class RequestCapture {
 
       // 清理已完成的请求
       this.pendingRequests.delete(details.requestId);
-
-      console.log('Request completed:', details.requestId, requestData);
     }
   }
 
@@ -288,7 +285,6 @@ export class RequestCapture {
       StorageManager.saveRequest(requestData);
 
       this.pendingRequests.delete(details.requestId);
-      console.log('Request error:', details.requestId, details.error);
     }
   }
 

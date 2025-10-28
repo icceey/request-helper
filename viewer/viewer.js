@@ -61,8 +61,6 @@ function showToast(message, type = 'success') {
 
 // 初始化
 async function init() {
-  console.log('Viewer initialized');
-  
   // 翻译页面
   translatePage();
   

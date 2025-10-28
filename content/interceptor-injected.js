@@ -6,15 +6,12 @@
 (function() {
   'use strict';
 
-  console.log('🚀 RequestHelper interceptor initialized');
-
   // 存储捕获规则
   let captureRules = [];
 
   // 监听规则更新
   window.addEventListener('RequestHelperRules', function(event) {
     captureRules = event.detail || [];
-    console.log('📋 RequestHelper rules updated:', captureRules.length);
   });
 
   // 请求规则（在脚本加载后发送）
@@ -175,7 +172,6 @@
             : originalBody;
           
           if (typeof original !== 'object' || original === null) {
-            console.warn('⚠️ Cannot merge non-object JSON');
             return { modifiedBody: originalBody, modified: false };
           }
 
@@ -212,11 +208,9 @@
         }
 
         default:
-          console.warn('⚠️ Unknown modification type:', requestBodyMod.type);
           return { modifiedBody: originalBody, modified: false };
       }
 
-      console.log('✅ Request body modified by rule:', rule.name);
       return {
         modifiedBody,
         originalBody,
@@ -266,7 +260,6 @@
         modificationDetails.deleted = keys;
       }
 
-      console.log('✅ Query modified by rule:', rule.name);
       return {
         modifiedUrl: urlObj.toString(),
         originalUrl: url,
@@ -330,7 +323,6 @@
         }
       }
 
-      console.log('✅ Headers modified by rule:', rule.name);
       return {
         modifiedHeaders,
         originalHeaders: headers,
@@ -373,7 +365,6 @@
             : originalBody;
           
           if (typeof original !== 'object' || original === null) {
-            console.warn('⚠️ Cannot merge non-object JSON');
             return { modifiedBody: originalBody, modified: false };
           }
 
@@ -409,11 +400,9 @@
         }
 
         default:
-          console.warn('⚠️ Unknown response modification type:', responseBodyMod.type);
           return { modifiedBody: originalBody, modified: false };
       }
 
-      console.log('✅ Response body modified by rule:', rule.name);
       return {
         modifiedBody,
         originalBody,
@@ -478,7 +467,6 @@
         }
       }
 
-      console.log('✅ Response headers modified by rule:', rule.name);
       return {
         modifiedHeaders,
         originalHeaders: headers,
@@ -552,7 +540,6 @@
           
           if (shouldDelete) {
             // 不设置这个header，但记录到requestData用于捕获
-            console.log(`🚫 Blocked setting header: ${header} (deleted by rule)`);
             return; // 不调用原始的setRequestHeader
           }
         }

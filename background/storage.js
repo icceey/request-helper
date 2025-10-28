@@ -34,8 +34,6 @@ export class StorageManager {
         [this.STORAGE_KEY]: requests
       });
 
-      console.log('Request saved:', requestData.id, 'Total:', requests.length);
-
       // 通知UI更新
       this.notifyUpdate(requests.length);
     } catch (error) {
@@ -70,7 +68,6 @@ export class StorageManager {
         );
       }
 
-      console.log('Getting requests with filters:', filters, 'Found:', requests.length);
       return requests;
     } catch (error) {
       console.error('Failed to get requests:', error);
@@ -104,9 +101,6 @@ export class StorageManager {
         await chrome.storage.local.set({
           [this.STORAGE_KEY]: requests
         });
-        console.log('Request updated:', requestData.id);
-      } else {
-        console.warn('Request not found for update:', requestData.id);
       }
     } catch (error) {
       console.error('Failed to update request:', error);
@@ -189,7 +183,6 @@ export class StorageManager {
       await chrome.storage.local.set({
         [this.STORAGE_KEY]: []
       });
-      console.log('All requests cleared');
       this.notifyUpdate(0);
     } catch (error) {
       console.error('Failed to clear requests:', error);
@@ -204,7 +197,6 @@ export class StorageManager {
       await chrome.storage.local.set({
         [this.CONFIG_KEY]: config
       });
-      console.log('Config saved:', config);
     } catch (error) {
       console.error('Failed to save config:', error);
     }
@@ -223,7 +215,6 @@ export class StorageManager {
         maxRequests: this.MAX_REQUESTS,
         captureStaticResources: false // 默认不捕获静态资源
       };
-      console.log('Config loaded:', config);
       return config;
     } catch (error) {
       console.error('Failed to get config:', error);
@@ -264,7 +255,6 @@ export class StorageManager {
       await chrome.storage.local.set({
         [this.RULES_KEY]: rules
       });
-      console.log('Capture rules saved:', rules);
     } catch (error) {
       console.error('Failed to save capture rules:', error);
     }
@@ -277,7 +267,6 @@ export class StorageManager {
     try {
       const result = await chrome.storage.local.get(this.RULES_KEY);
       const rules = result[this.RULES_KEY] || [];
-      console.log('Capture rules loaded:', rules);
       return rules;
     } catch (error) {
       console.error('Failed to get capture rules:', error);
@@ -293,7 +282,6 @@ export class StorageManager {
       const rules = await this.getRules();
       rules.push(rule);
       await this.saveRules(rules);
-      console.log('Rule added:', rule);
     } catch (error) {
       console.error('Failed to add rule:', error);
     }
@@ -309,7 +297,6 @@ export class StorageManager {
       if (index !== -1) {
         rules[index] = updatedRule;
         await this.saveRules(rules);
-        console.log('Rule updated:', ruleId);
       }
     } catch (error) {
       console.error('Failed to update rule:', error);
@@ -324,7 +311,6 @@ export class StorageManager {
       const rules = await this.getRules();
       const filtered = rules.filter(r => r.id !== ruleId);
       await this.saveRules(filtered);
-      console.log('Rule deleted:', ruleId);
     } catch (error) {
       console.error('Failed to delete rule:', error);
     }
@@ -336,7 +322,6 @@ export class StorageManager {
   static async reorderRules(rules) {
     try {
       await this.saveRules(rules);
-      console.log('Rules reordered');
     } catch (error) {
       console.error('Failed to reorder rules:', error);
     }

@@ -6,8 +6,6 @@
 import { StorageManager } from './storage.js';
 import { RequestCapture } from './capture.js';
 
-console.log('RequestHelper Service Worker loaded');
-
 let currentConfig = null;
 
 /**
@@ -45,12 +43,9 @@ export function getCapturingStatus() {
 
 // 初始化
 async function initialize() {
-  console.log('Initializing RequestHelper...');
-  
   try {
     // 加载配置
     currentConfig = await StorageManager.getConfig();
-    console.log('Config loaded:', currentConfig);
 
     // 注册网络监听器（一次性注册）
     RequestCapture.registerListeners();
@@ -58,7 +53,6 @@ async function initialize() {
     // Service Worker 重启后，捕获状态会重置为 false
     // 如果配置中的 enabled 为 true，需要将其更新为 false 并保存
     if (currentConfig.enabled && !RequestCapture.isCapturing) {
-      console.log('Service Worker restarted, resetting capture state');
       currentConfig.enabled = false;
       await StorageManager.saveConfig(currentConfig);
     }
@@ -73,8 +67,6 @@ async function initialize() {
     if (currentConfig.autoStart) {
       startCapture();
     }
-
-    console.log('RequestHelper initialized successfully');
   } catch (error) {
     console.error('Failed to initialize:', error);
   }
@@ -82,7 +74,6 @@ async function initialize() {
 
 // 启动捕获
 async function startCapture() {
-  console.log('Starting capture...');
   RequestCapture.startCapture(currentConfig);
   
   // 更新配置状态
@@ -104,7 +95,6 @@ async function startCapture() {
 
 // 停止捕获
 async function stopCapture() {
-  console.log('Stopping capture...');
   RequestCapture.stopCapture();
   
   // 更新配置状态
@@ -118,21 +108,11 @@ async function stopCapture() {
 
 // 监听插件安装
 chrome.runtime.onInstalled.addListener((details) => {
-  console.log('RequestHelper installed:', details.reason);
-  
-  if (details.reason === 'install') {
-    // 首次安装，设置默认配置
-    console.log('First time installation, setting default config');
-  } else if (details.reason === 'update') {
-    console.log('Extension updated');
-  }
-  
   initialize();
 });
 
 // 监听插件启动
 chrome.runtime.onStartup.addListener(() => {
-  console.log('RequestHelper started');
   initialize();
 });
 
@@ -262,16 +242,13 @@ async function handleMessage(message, sender) {
       return { success: true };
 
     default:
-      console.warn('Unknown message type:', message.type);
       return { success: false, error: 'Unknown message type' };
   }
 }
 
 // 处理存储变化
 chrome.storage.onChanged.addListener((changes, areaName) => {
-  if (areaName === 'local') {
-    console.log('Storage changed:', changes);
-  }
+  // 可以在这里监听存储变化
 });
 
 // Service Worker 保活（可选）
@@ -303,5 +280,3 @@ chrome.runtime.onMessage.addListener((message) => {
     stopKeepAlive();
   }
 });
-
-console.log('Service Worker setup complete');
