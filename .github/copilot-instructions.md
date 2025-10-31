@@ -3,6 +3,8 @@
 ## Project Overview
 RequestHelper is a Chrome Manifest V3 extension for silent network request capturing and analysis. It uses a **dual-layer interception architecture** to bypass webRequest API limitations and capture complete request/response bodies.
 
+**🤖 AI-ONLY Development Policy**: This project is entirely AI-generated. ALL contributions MUST be AI-generated code. Focus solely on implementation - never create documentation files like SUMMARY.md or CHANGES.md.
+
 ## Critical Architecture Patterns
 
 ### 1. Dual-Layer Network Interception
@@ -24,6 +26,28 @@ Page Request → interceptor-injected.js (MAIN world) → CustomEvent
 - Import paths are relative: `import { StorageManager } from './storage.js'`
 - UI scripts (popup, viewer, options) use `<script type="module">` in HTML
 - Content scripts must be vanilla JS (no imports) or use bundlers
+
+**Modular UI Architecture** (viewer and options):
+```javascript
+// viewer/modules/ structure:
+state.js              // Global state management (allRequests, selectedRequest, etc.)
+filter-manager.js     // Method/status/rule filters
+request-list.js       // Request list rendering
+request-details.js    // Request detail panel
+utils.js              // Shared utilities (escapeHtml, getStatusClass, etc.)
+
+// options/modules/ structure:
+config-manager.js     // Configuration management
+form-utils.js         // Reusable form helpers (key-value pairs, etc.)
+rule-editor.js        // Rule CRUD operations
+```
+
+**Import pattern for UI modules:**
+```javascript
+// In viewer/viewer.js or options/options.js
+import { state, updateAllRequests } from './modules/state.js';
+import { updateMethodFilter } from './modules/filter-manager.js';
+```
 
 ### 3. Storage Architecture
 ```javascript
@@ -132,13 +156,15 @@ All `chrome.runtime.sendMessage` calls use `{ type: string, ...data }` pattern:
 
 ### 3. UI State Management
 - No framework used - vanilla JS with manual DOM updates
-- Viewer uses `allRequests`, `filteredRequests`, `selectedRequest` globals
-- Filtering in `handleFilter()` applies multiple criteria:
+- **Viewer uses modular architecture** - state centralized in `viewer/modules/state.js`
+- State variables exported: `allRequests`, `filteredRequests`, `selectedRequest`, `selectedStatusCodes`, `selectedMethods`, `selectedRules`, `showSlowRequestsOnly`, `searchScopes`
+- Filtering logic split into `filter-manager.js` module - handles multiple criteria:
   - URL search (with configurable scopes: url, requestBody, responseBody)
   - HTTP method filter (multiple selection via Set)
   - Status code filter (uses Set for O(1) lookups: `selectedStatusCodes`)
   - Capture rule filter (filter by which rule matched)
   - Slow request filter (duration-based threshold)
+- Request rendering separated into `request-list.js` and `request-details.js` modules
 
 ### 4. Style Patterns
 - Status code colors: `.status-2xx` (green), `.status-3xx` (yellow), `.status-4xx` (orange), `.status-5xx` (red)
