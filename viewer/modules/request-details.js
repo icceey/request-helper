@@ -479,7 +479,7 @@ async function handleCreateRuleClick(e) {
       `${getMessage('method')}: ${request.method}\n` +
       `URL: ${urlWithoutQuery}\n\n` +
       `${getMessage('ruleAction')}: ${getMessage('capture')}\n\n` +
-      `确认创建此规则吗？`
+      `${getMessage('confirmCreateRule')}`
     );
     
     if (!confirmed) {
@@ -516,7 +516,7 @@ async function handleCreateRuleClick(e) {
       
       // 询问用户是否打开设置页面查看规则
       setTimeout(() => {
-        if (confirm(`${getMessage('ruleCreatedSuccess')}！\n\n是否打开设置页面查看规则？`)) {
+        if (confirm(`${getMessage('ruleCreatedSuccess')}！\n\n${getMessage('openSettingsToViewRule')}`)) {
           chrome.runtime.openOptionsPage();
         }
       }, 500);

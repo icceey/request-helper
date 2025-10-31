@@ -232,6 +232,22 @@
     "message": "确定要清除所有已捕获的请求吗？",
     "description": "清除数据确认消息"
   },
+  "confirmReset": {
+    "message": "确定要将设置恢复为默认值吗？",
+    "description": "恢复默认设置确认消息"
+  },
+  "confirmCreateRule": {
+    "message": "确认创建此规则吗？",
+    "description": "创建规则确认消息"
+  },
+  "openSettingsToViewRule": {
+    "message": "是否打开设置页面查看规则？",
+    "description": "创建规则后打开设置页面的确认消息"
+  },
+  "operationFailed": {
+    "message": "操作失败，请查看控制台",
+    "description": "操作失败时的错误消息"
+  },
   "dataClearedSuccess": {
     "message": "数据已清空",
     "description": "清空数据成功消息"

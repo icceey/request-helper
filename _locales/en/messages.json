@@ -232,6 +232,22 @@
     "message": "Are you sure you want to clear all captured requests?",
     "description": "Confirmation message for clearing data"
   },
+  "confirmReset": {
+    "message": "Are you sure you want to reset settings to default?",
+    "description": "Confirmation message for resetting settings"
+  },
+  "confirmCreateRule": {
+    "message": "Confirm creating this rule?",
+    "description": "Confirmation message for creating rule"
+  },
+  "openSettingsToViewRule": {
+    "message": "Open settings page to view the rule?",
+    "description": "Confirmation to open settings page after creating rule"
+  },
+  "operationFailed": {
+    "message": "Operation failed, please check console",
+    "description": "Error message when operation fails"
+  },
   "dataClearedSuccess": {
     "message": "Data cleared successfully",
     "description": "Success message after clearing data"

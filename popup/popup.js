@@ -100,7 +100,7 @@ async function handleToggle() {
     }
   } catch (error) {
     console.error('Failed to toggle capture:', error);
-    alert('Operation failed, please check console');
+    alert(getMessage('operationFailed'));
   }
 }
 

@@ -514,7 +514,7 @@ function buildResponseHeadersModification(elements, saveMessage) {
 
 // 删除规则
 export async function deleteRule(ruleId) {
-  if (!confirm(getMessage('confirmDelete'))) {
+  if (!confirm(getMessage('confirmDeleteRule'))) {
     return false;
   }
   

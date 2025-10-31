@@ -73,7 +73,7 @@ export async function saveConfig(elements, saveMessage) {
 
 // 恢复默认配置
 export function resetConfig(elements, saveMessage) {
-  if (!confirm(getMessage('confirmClear'))) {
+  if (!confirm(getMessage('confirmReset'))) {
     return;
   }
 
