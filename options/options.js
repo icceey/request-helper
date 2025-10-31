@@ -1,12 +1,15 @@
 /**
- * RequestHelper - Options Page
+ * RequestHelper - Options Page (Main Entry)
+ * 配置页面主入口
  */
 
 import { getMessage, translatePage } from '../utils/i18n.js';
+import { loadConfig, saveConfig, resetConfig, switchTab } from './modules/config-manager.js';
+import { addKeyValuePair, addKeyItem, showMessage } from './modules/form-utils.js';
+import { loadRules, renderRules, bindRuleActions, openRuleModal, closeRuleModal, saveRule, deleteRule, moveRuleUp, moveRuleDown } from './modules/rule-editor.js';
 
 // DOM 元素 - Tabs
 const tabButtons = document.querySelectorAll('.tab-button');
-const tabContents = document.querySelectorAll('.tab-content');
 
 // DOM 元素 - Basic Settings
 const autoStartCheckbox = document.getElementById('auto-start');
@@ -77,17 +80,39 @@ const addResponseHeaderPairBtn = document.getElementById('add-response-header-pa
 const responseHeadersDeleteList = document.getElementById('response-headers-delete-list');
 const addResponseHeaderDeleteKeyBtn = document.getElementById('add-response-header-delete-key');
 
-// 状态变量
-let currentRules = [];
-let editingRuleId = null;
+// 配置元素对象
+const configElements = {
+  autoStart: autoStartCheckbox,
+  captureStaticResources: captureStaticResourcesCheckbox,
+  maxRequests: maxRequestsInput
+};
 
-// 默认配置
-const DEFAULT_CONFIG = {
-  autoStart: false,
-  urlPatterns: ['*://*/*'],
-  maxRequests: 1000,
-  enabled: false,
-  captureStaticResources: false
+// 规则模态框元素对象
+const modalElements = {
+  modal: ruleModal,
+  modalTitle: modalTitle,
+  ruleName: ruleNameInput,
+  ruleEnabled: ruleEnabledCheckbox,
+  ruleType: ruleTypeSelect,
+  rulePattern: rulePatternInput,
+  ruleAction: ruleActionSelect,
+  modifyType: modifyTypeSelect,
+  modifyValue: modifyValueTextarea,
+  textPattern: textPatternInput,
+  textReplacement: textReplacementInput,
+  queryOperation: queryOperationSelect,
+  queryPairsList: queryPairsList,
+  queryDeleteList: queryDeleteList,
+  headersOperation: headersOperationSelect,
+  headersPairsList: headersPairsList,
+  headersDeleteList: headersDeleteList,
+  responseBodyModifyType: responseBodyModifyTypeSelect,
+  responseBodyModifyValue: responseBodyModifyValueTextarea,
+  responseBodyTextPattern: responseBodyTextPatternInput,
+  responseBodyTextReplacement: responseBodyTextReplacementInput,
+  responseHeadersOperation: responseHeadersOperationSelect,
+  responseHeadersPairsList: responseHeadersPairsList,
+  responseHeadersDeleteList: responseHeadersDeleteList
 };
 
 // 初始化
@@ -101,15 +126,17 @@ async function init() {
   });
   
   // 加载配置和规则
-  await loadConfig();
-  await loadRules();
+  await loadConfig(configElements, saveMessage);
+  await loadAndRenderRules();
   
-  // 绑定事件
-  saveBtn.addEventListener('click', handleSave);
-  resetBtn.addEventListener('click', handleReset);
-  addRuleBtn.addEventListener('click', () => openRuleModal());
-  modalClose.addEventListener('click', closeRuleModal);
-  modalCancel.addEventListener('click', closeRuleModal);
+  // 绑定基础配置事件
+  saveBtn.addEventListener('click', handleSaveConfig);
+  resetBtn.addEventListener('click', handleResetConfig);
+  
+  // 绑定规则事件
+  addRuleBtn.addEventListener('click', () => handleOpenRuleModal());
+  modalClose.addEventListener('click', () => handleCloseRuleModal());
+  modalCancel.addEventListener('click', () => handleCloseRuleModal());
   modalSave.addEventListener('click', handleSaveRule);
   
   // 监听动作类型变化
@@ -129,18 +156,96 @@ async function init() {
   addResponseHeaderDeleteKeyBtn.addEventListener('click', () => addKeyItem(responseHeadersDeleteList, 'header'));
 }
 
+// 加载并渲染规则
+async function loadAndRenderRules() {
+  try {
+    await loadRules();
+    renderRules(rulesList, emptyRules);
+    bindRuleActions(rulesList, {
+      onEdit: handleEditRule,
+      onDelete: handleDeleteRule,
+      onMoveUp: handleMoveRuleUp,
+      onMoveDown: handleMoveRuleDown
+    });
+  } catch (error) {
+    console.error('Failed to load rules:', error);
+    showMessage(saveMessage, getMessage('failedToLoadConfig'), 'error');
+  }
+}
+
+// 保存配置
+async function handleSaveConfig() {
+  await saveConfig(configElements, saveMessage);
+}
+
+// 重置配置
+function handleResetConfig() {
+  resetConfig(configElements, saveMessage);
+}
+
+// 打开规则模态框
+function handleOpenRuleModal(ruleId = null) {
+  openRuleModal(ruleId, modalElements);
+  handleActionTypeChange();
+}
+
+// 关闭规则模态框
+function handleCloseRuleModal() {
+  closeRuleModal(ruleModal);
+}
+
+// 保存规则
+async function handleSaveRule() {
+  const success = await saveRule(modalElements, saveMessage);
+  if (success) {
+    handleCloseRuleModal();
+    await loadAndRenderRules(); // 重新加载并渲染规则
+    showMessage(saveMessage, getMessage('settingsSaved'), 'success');
+  }
+}
+
+// 编辑规则
+function handleEditRule(ruleId) {
+  handleOpenRuleModal(ruleId);
+}
+
+// 删除规则
+async function handleDeleteRule(ruleId) {
+  const success = await deleteRule(ruleId);
+  if (success) {
+    await loadAndRenderRules(); // 重新加载并渲染规则
+    showMessage(saveMessage, getMessage('settingsSaved'), 'success');
+  }
+}
+
+// 上移规则
+async function handleMoveRuleUp(ruleId) {
+  const success = await moveRuleUp(ruleId);
+  if (success) {
+    await loadAndRenderRules(); // 重新加载并渲染规则
+  }
+}
+
+// 下移规则
+async function handleMoveRuleDown(ruleId) {
+  const success = await moveRuleDown(ruleId);
+  if (success) {
+    await loadAndRenderRules(); // 重新加载并渲染规则
+  }
+}
+
 // 处理动作类型变化
 function handleActionTypeChange() {
   const actionType = ruleActionSelect.value;
   
-  // 隐藏所有修改配置区域
+  // 隐藏所有修改配置
   modifyBodyConfigDiv.classList.add('hidden');
   modifyQueryConfigDiv.classList.add('hidden');
   modifyHeadersConfigDiv.classList.add('hidden');
   modifyResponseBodyConfigDiv.classList.add('hidden');
   modifyResponseHeadersConfigDiv.classList.add('hidden');
   
-  // 根据选择显示对应区域
+  // 根据动作类型显示相应配置
   if (actionType === 'modifyRequestBody') {
     modifyBodyConfigDiv.classList.remove('hidden');
     handleModifyTypeChange();
@@ -159,7 +264,7 @@ function handleActionTypeChange() {
   }
 }
 
-// 处理修改类型变化（请求体）
+// 处理修改类型变化
 function handleModifyTypeChange() {
   const modifyType = modifyTypeSelect.value;
   if (modifyType === 'text-replace') {
@@ -171,7 +276,7 @@ function handleModifyTypeChange() {
   }
 }
 
-// 处理查询参数操作变化
+// 处理 Query 操作变化
 function handleQueryOperationChange() {
   const operation = queryOperationSelect.value;
   if (operation === 'delete') {
@@ -217,788 +322,6 @@ function handleResponseHeadersOperationChange() {
     responseHeadersAddConfig.classList.remove('hidden');
     responseHeadersDeleteConfig.classList.add('hidden');
   }
-}
-
-// 添加键值对输入项
-function addKeyValuePair(container, type) {
-  const item = document.createElement('div');
-  item.className = 'key-value-item';
-  
-  const keyPlaceholder = type === 'query' 
-    ? getMessage('queryKeyPlaceholder') || 'parameter_name'
-    : getMessage('headerKeyPlaceholder') || 'Header-Name';
-  const valuePlaceholder = type === 'query' 
-    ? getMessage('queryValuePlaceholder') || 'value'
-    : getMessage('headerValuePlaceholder') || 'header value';
-  const removeText = getMessage('remove') || 'Remove';
-  
-  item.innerHTML = `
-    <input type="text" class="kv-key" placeholder="${keyPlaceholder}" />
-    <input type="text" class="kv-value" placeholder="${valuePlaceholder}" />
-    <button type="button" class="btn-remove">${removeText}</button>
-  `;
-  
-  // 绑定删除按钮
-  item.querySelector('.btn-remove').addEventListener('click', () => {
-    item.remove();
-  });
-  
-  container.appendChild(item);
-  
-  // 聚焦到key输入框
-  item.querySelector('.kv-key').focus();
-}
-
-// 添加单键输入项（用于删除操作）
-function addKeyItem(container, type) {
-  const item = document.createElement('div');
-  item.className = 'key-item';
-  
-  const placeholder = type === 'query' 
-    ? getMessage('queryKeyPlaceholder') || 'parameter_name'
-    : getMessage('headerKeyPlaceholder') || 'Header-Name';
-  const removeText = getMessage('remove') || 'Remove';
-  
-  item.innerHTML = `
-    <input type="text" class="key-name" placeholder="${placeholder}" />
-    <button type="button" class="btn-remove">${removeText}</button>
-  `;
-  
-  // 绑定删除按钮
-  item.querySelector('.btn-remove').addEventListener('click', () => {
-    item.remove();
-  });
-  
-  container.appendChild(item);
-  
-  // 聚焦到输入框
-  item.querySelector('.key-name').focus();
-}
-
-// 从容器中提取键值对对象
-function getKeyValuePairsFromContainer(container) {
-  const pairs = {};
-  const items = container.querySelectorAll('.key-value-item');
-  
-  items.forEach(item => {
-    const key = item.querySelector('.kv-key').value.trim();
-    const value = item.querySelector('.kv-value').value.trim();
-    
-    if (key) { // 只添加非空的key
-      pairs[key] = value;
-    }
-  });
-  
-  return pairs;
-}
-
-// 从容器中提取键名数组
-function getKeysFromContainer(container) {
-  const keys = [];
-  const items = container.querySelectorAll('.key-item');
-  
-  items.forEach(item => {
-    const key = item.querySelector('.key-name').value.trim();
-    if (key) {
-      keys.push(key);
-    }
-  });
-  
-  return keys;
-}
-
-// 填充键值对到容器
-function populateKeyValuePairs(container, pairs, type) {
-  container.innerHTML = ''; // 清空
-  
-  if (pairs && typeof pairs === 'object') {
-    for (const [key, value] of Object.entries(pairs)) {
-      addKeyValuePair(container, type);
-      const item = container.lastElementChild;
-      item.querySelector('.kv-key').value = key;
-      item.querySelector('.kv-value').value = value;
-    }
-  }
-  
-  // 如果没有任何项，添加一个空项
-  if (container.children.length === 0) {
-    addKeyValuePair(container, type);
-  }
-}
-
-// 填充键名到容器
-function populateKeys(container, keys, type) {
-  container.innerHTML = ''; // 清空
-  
-  if (Array.isArray(keys)) {
-    keys.forEach(key => {
-      addKeyItem(container, type);
-      const item = container.lastElementChild;
-      item.querySelector('.key-name').value = key;
-    });
-  }
-  
-  // 如果没有任何项，添加一个空项
-  if (container.children.length === 0) {
-    addKeyItem(container, type);
-  }
-}
-
-// 切换 Tab
-function switchTab(tabId) {
-  // 更新按钮状态
-  tabButtons.forEach(btn => {
-    if (btn.dataset.tab === tabId) {
-      btn.classList.add('active');
-    } else {
-      btn.classList.remove('active');
-    }
-  });
-  
-  // 更新内容显示
-  tabContents.forEach(content => {
-    if (content.id === tabId) {
-      content.classList.add('active');
-    } else {
-      content.classList.remove('active');
-    }
-  });
-}
-
-// 加载配置
-async function loadConfig() {
-  try {
-    const response = await chrome.runtime.sendMessage({ type: 'GET_STATUS' });
-    
-    if (response.success && response.config) {
-      const config = response.config;
-      
-      // 填充表单
-      autoStartCheckbox.checked = config.autoStart || false;
-      captureStaticResourcesCheckbox.checked = config.captureStaticResources || false;
-      maxRequestsInput.value = config.maxRequests || DEFAULT_CONFIG.maxRequests;
-    } else {
-      // 使用默认配置
-      autoStartCheckbox.checked = DEFAULT_CONFIG.autoStart;
-      captureStaticResourcesCheckbox.checked = DEFAULT_CONFIG.captureStaticResources;
-      maxRequestsInput.value = DEFAULT_CONFIG.maxRequests;
-    }
-  } catch (error) {
-    console.error('Failed to load config:', error);
-    showMessage(getMessage('failedToLoadConfig'), 'error');
-  }
-}
-
-// 加载规则
-async function loadRules() {
-  try {
-    const response = await chrome.runtime.sendMessage({ type: 'GET_RULES' });
-    
-    if (response.success) {
-      currentRules = response.rules || [];
-      renderRules();
-    }
-  } catch (error) {
-    console.error('Failed to load rules:', error);
-    showMessage(getMessage('failedToLoadConfig'), 'error');
-  }
-}
-
-// 渲染规则列表
-function renderRules() {
-  if (currentRules.length === 0) {
-    rulesList.innerHTML = '';
-    emptyRules.classList.remove('hidden');
-    return;
-  }
-  
-  emptyRules.classList.add('hidden');
-  
-  rulesList.innerHTML = currentRules.map((rule, index) => `
-    <div class="rule-item ${rule.enabled ? '' : 'disabled'}" data-rule-id="${rule.id}">
-      <div class="rule-header">
-        <div class="rule-info">
-          <span class="rule-name">${escapeHtml(rule.name)}</span>
-          <span class="rule-badge ${rule.enabled ? 'enabled' : 'disabled'}" data-i18n="${rule.enabled ? 'enabled' : 'disabled'}">
-            ${getMessage(rule.enabled ? 'enabled' : 'disabled')}
-          </span>
-          <span class="rule-badge ${rule.action.type}">
-            ${getRuleActionName(rule.action.type)}
-          </span>
-        </div>
-        <div class="rule-actions">
-          <button class="btn-icon btn-move-up" data-rule-id="${rule.id}" ${index === 0 ? 'disabled' : ''} title="${getMessage('moveUp')}">↑</button>
-          <button class="btn-icon btn-move-down" data-rule-id="${rule.id}" ${index === currentRules.length - 1 ? 'disabled' : ''} title="${getMessage('moveDown')}">↓</button>
-          <button class="btn-icon edit btn-edit" data-rule-id="${rule.id}" title="${getMessage('edit')}">✎</button>
-          <button class="btn-icon delete btn-delete" data-rule-id="${rule.id}" title="${getMessage('delete')}">✕</button>
-        </div>
-      </div>
-      <div class="rule-details">
-        <div class="rule-detail-item">
-          <span class="label" data-i18n="ruleType">${getMessage('ruleType')}:</span>
-          <span class="value">${getRuleTypeName(rule.type)}</span>
-        </div>
-        <div class="rule-detail-item">
-          <span class="label" data-i18n="ruleCondition">${getMessage('ruleCondition')}:</span>
-          <code class="value">${escapeHtml(rule.condition.pattern)}</code>
-        </div>
-        <div class="rule-detail-item">
-          <span class="label" data-i18n="ruleAction">${getMessage('ruleAction')}:</span>
-          <span class="value">${getRuleActionName(rule.action.type)}</span>
-        </div>
-      </div>
-    </div>
-  `).join('');
-  
-  // 绑定事件监听器
-  bindRuleActions();
-}
-
-// 获取规则类型名称
-function getRuleTypeName(type) {
-  const names = {
-    'url-regex': getMessage('urlRegex')
-  };
-  return names[type] || type;
-}
-
-// 获取规则动作名称
-function getRuleActionName(actionType) {
-  const names = {
-    'capture': getMessage('capture'),
-    'block': getMessage('block'),
-    'modifyRequestBody': getMessage('modifyRequestBody'),
-    'modifyQuery': getMessage('modifyQuery'),
-    'modifyHeaders': getMessage('modifyHeaders'),
-    'modifyResponseBody': getMessage('modifyResponseBody'),
-    'modifyResponseHeaders': getMessage('modifyResponseHeaders')
-  };
-  return names[actionType] || actionType;
-}
-
-// 绑定规则操作按钮事件
-function bindRuleActions() {
-  // 使用事件委托处理所有按钮点击
-  rulesList.querySelectorAll('.btn-edit').forEach(btn => {
-    btn.addEventListener('click', (e) => {
-      const ruleId = e.target.dataset.ruleId;
-      editRule(ruleId);
-    });
-  });
-  
-  rulesList.querySelectorAll('.btn-delete').forEach(btn => {
-    btn.addEventListener('click', (e) => {
-      const ruleId = e.target.dataset.ruleId;
-      deleteRule(ruleId);
-    });
-  });
-  
-  rulesList.querySelectorAll('.btn-move-up').forEach(btn => {
-    btn.addEventListener('click', (e) => {
-      const ruleId = e.target.dataset.ruleId;
-      moveRuleUp(ruleId);
-    });
-  });
-  
-  rulesList.querySelectorAll('.btn-move-down').forEach(btn => {
-    btn.addEventListener('click', (e) => {
-      const ruleId = e.target.dataset.ruleId;
-      moveRuleDown(ruleId);
-    });
-  });
-}
-
-// 打开规则编辑模态框
-function openRuleModal(ruleId = null) {
-  editingRuleId = ruleId;
-  
-  if (ruleId) {
-    // 编辑模式
-    const rule = currentRules.find(r => r.id === ruleId);
-    if (!rule) return;
-    
-    modalTitle.textContent = getMessage('editRule');
-    ruleNameInput.value = rule.name;
-    ruleEnabledCheckbox.checked = rule.enabled;
-    ruleTypeSelect.value = rule.type;
-    rulePatternInput.value = rule.condition.pattern;
-    ruleActionSelect.value = rule.action.type;
-    
-    // 如果是修改动作，加载修改配置
-    if (rule.action.type === 'modifyRequestBody' && rule.action.modifications?.requestBody) {
-      const reqBodyMod = rule.action.modifications.requestBody;
-      modifyTypeSelect.value = reqBodyMod.type;
-      
-      if (reqBodyMod.type === 'text-replace') {
-        textPatternInput.value = reqBodyMod.pattern || '';
-        textReplacementInput.value = reqBodyMod.replacement || '';
-      } else {
-        modifyValueTextarea.value = JSON.stringify(reqBodyMod.value, null, 2);
-      }
-    } else if (rule.action.type === 'modifyQuery' && rule.action.modifications?.query) {
-      const queryMod = rule.action.modifications.query;
-      
-      if (queryMod.delete) {
-        queryOperationSelect.value = 'delete';
-        populateKeys(queryDeleteList, queryMod.delete, 'query');
-      } else if (queryMod.addOrUpdate) {
-        queryOperationSelect.value = 'addOrUpdate';
-        populateKeyValuePairs(queryPairsList, queryMod.addOrUpdate, 'query');
-      }
-    } else if (rule.action.type === 'modifyHeaders' && rule.action.modifications?.headers) {
-      const headersMod = rule.action.modifications.headers;
-      
-      if (headersMod.delete) {
-        headersOperationSelect.value = 'delete';
-        populateKeys(headersDeleteList, headersMod.delete, 'header');
-      } else if (headersMod.addOrUpdate) {
-        headersOperationSelect.value = 'addOrUpdate';
-        populateKeyValuePairs(headersPairsList, headersMod.addOrUpdate, 'header');
-      }
-    } else if (rule.action.type === 'modifyResponseBody' && rule.action.modifications?.responseBody) {
-      const respBodyMod = rule.action.modifications.responseBody;
-      responseBodyModifyTypeSelect.value = respBodyMod.type;
-      
-      if (respBodyMod.type === 'text-replace') {
-        responseBodyTextPatternInput.value = respBodyMod.pattern || '';
-        responseBodyTextReplacementInput.value = respBodyMod.replacement || '';
-      } else {
-        responseBodyModifyValueTextarea.value = JSON.stringify(respBodyMod.value, null, 2);
-      }
-    } else if (rule.action.type === 'modifyResponseHeaders' && rule.action.modifications?.responseHeaders) {
-      const respHeadersMod = rule.action.modifications.responseHeaders;
-      
-      if (respHeadersMod.delete) {
-        responseHeadersOperationSelect.value = 'delete';
-        populateKeys(responseHeadersDeleteList, respHeadersMod.delete, 'header');
-      } else if (respHeadersMod.addOrUpdate) {
-        responseHeadersOperationSelect.value = 'addOrUpdate';
-        populateKeyValuePairs(responseHeadersPairsList, respHeadersMod.addOrUpdate, 'header');
-      }
-    }
-  } else {
-    // 新建模式
-    modalTitle.textContent = getMessage('addNewRule');
-    ruleNameInput.value = '';
-    ruleEnabledCheckbox.checked = true;
-    ruleTypeSelect.value = 'url-regex';
-    rulePatternInput.value = '';
-    ruleActionSelect.value = 'capture';
-    modifyTypeSelect.value = 'json-merge';
-    modifyValueTextarea.value = '';
-    textPatternInput.value = '';
-    textReplacementInput.value = '';
-    queryOperationSelect.value = 'addOrUpdate';
-    headersOperationSelect.value = 'addOrUpdate';
-    responseBodyModifyTypeSelect.value = 'json-merge';
-    responseBodyModifyValueTextarea.value = '';
-    responseBodyTextPatternInput.value = '';
-    responseBodyTextReplacementInput.value = '';
-    responseHeadersOperationSelect.value = 'addOrUpdate';
-    
-    // 初始化空的键值对列表
-    populateKeyValuePairs(queryPairsList, {}, 'query');
-    populateKeys(queryDeleteList, [], 'query');
-    populateKeyValuePairs(headersPairsList, {}, 'header');
-    populateKeys(headersDeleteList, [], 'header');
-    populateKeyValuePairs(responseHeadersPairsList, {}, 'header');
-    populateKeys(responseHeadersDeleteList, [], 'header');
-  }
-  
-  // 更新 UI 显示
-  handleActionTypeChange();
-  
-  ruleModal.classList.remove('hidden');
-}
-
-// 关闭规则编辑模态框
-function closeRuleModal() {
-  ruleModal.classList.add('hidden');
-  editingRuleId = null;
-}
-
-// 保存规则
-async function handleSaveRule() {
-  const name = ruleNameInput.value.trim();
-  const enabled = ruleEnabledCheckbox.checked;
-  const type = ruleTypeSelect.value;
-  const pattern = rulePatternInput.value.trim();
-  const actionType = ruleActionSelect.value;
-  
-  // 验证
-  if (!name) {
-    showMessage(getMessage('ruleNameRequired'), 'error');
-    return;
-  }
-  
-  if (!pattern) {
-    showMessage(getMessage('rulePatternRequired'), 'error');
-    return;
-  }
-  
-  // 验证正则表达式
-  try {
-    new RegExp(pattern);
-  } catch (error) {
-    showMessage(getMessage('invalidRegexPattern') + ': ' + error.message, 'error');
-    return;
-  }
-  
-  // 构建规则对象
-  const rule = {
-    id: editingRuleId || generateId(),
-    name,
-    enabled,
-    type,
-    condition: {
-      pattern
-    },
-    action: {
-      type: actionType
-    }
-  };
-  
-  // 如果是修改动作，添加修改配置
-  if (actionType === 'modifyRequestBody') {
-    const modifyType = modifyTypeSelect.value;
-    
-    if (modifyType === 'text-replace') {
-      const textPattern = textPatternInput.value.trim();
-      const textReplacement = textReplacementInput.value;
-      
-      if (!textPattern) {
-        showMessage('查找文本不能为空', 'error');
-        return;
-      }
-      
-      rule.action.modifications = {
-        requestBody: {
-          type: 'text-replace',
-          pattern: textPattern,
-          replacement: textReplacement
-        }
-      };
-    } else {
-      // json-merge 或 json-replace
-      const modifyValue = modifyValueTextarea.value.trim();
-      
-      if (!modifyValue) {
-        showMessage('修改内容不能为空', 'error');
-        return;
-      }
-      
-      // 验证 JSON
-      try {
-        const jsonValue = JSON.parse(modifyValue);
-        rule.action.modifications = {
-          requestBody: {
-            type: modifyType,
-            value: jsonValue
-          }
-        };
-      } catch (error) {
-        showMessage('无效的 JSON 格式: ' + error.message, 'error');
-        return;
-      }
-    }
-  } else if (actionType === 'modifyQuery') {
-    const operation = queryOperationSelect.value;
-    
-    if (operation === 'delete') {
-      const deleteKeys = getKeysFromContainer(queryDeleteList);
-      
-      if (deleteKeys.length === 0) {
-        showMessage('请至少添加一个要删除的参数', 'error');
-        return;
-      }
-      
-      rule.action.modifications = {
-        query: {
-          delete: deleteKeys
-        }
-      };
-    } else {
-      // addOrUpdate
-      const pairs = getKeyValuePairsFromContainer(queryPairsList);
-      
-      if (Object.keys(pairs).length === 0) {
-        showMessage('请至少添加一个参数', 'error');
-        return;
-      }
-      
-      rule.action.modifications = {
-        query: {
-          addOrUpdate: pairs
-        }
-      };
-    }
-  } else if (actionType === 'modifyHeaders') {
-    const operation = headersOperationSelect.value;
-    
-    if (operation === 'delete') {
-      const deleteKeys = getKeysFromContainer(headersDeleteList);
-      
-      if (deleteKeys.length === 0) {
-        showMessage('请至少添加一个要删除的请求头', 'error');
-        return;
-      }
-      
-      rule.action.modifications = {
-        headers: {
-          delete: deleteKeys
-        }
-      };
-    } else {
-      // addOrUpdate
-      const pairs = getKeyValuePairsFromContainer(headersPairsList);
-      
-      if (Object.keys(pairs).length === 0) {
-        showMessage('请至少添加一个请求头', 'error');
-        return;
-      }
-      
-      rule.action.modifications = {
-        headers: {
-          addOrUpdate: pairs
-        }
-      };
-    }
-  } else if (actionType === 'modifyResponseBody') {
-    const modifyType = responseBodyModifyTypeSelect.value;
-    
-    if (modifyType === 'text-replace') {
-      const textPattern = responseBodyTextPatternInput.value.trim();
-      const textReplacement = responseBodyTextReplacementInput.value;
-      
-      if (!textPattern) {
-        showMessage('查找文本不能为空', 'error');
-        return;
-      }
-      
-      rule.action.modifications = {
-        responseBody: {
-          type: 'text-replace',
-          pattern: textPattern,
-          replacement: textReplacement
-        }
-      };
-    } else {
-      // json-merge 或 json-replace
-      const modifyValue = responseBodyModifyValueTextarea.value.trim();
-      
-      if (!modifyValue) {
-        showMessage('修改内容不能为空', 'error');
-        return;
-      }
-      
-      // 验证 JSON
-      try {
-        const jsonValue = JSON.parse(modifyValue);
-        rule.action.modifications = {
-          responseBody: {
-            type: modifyType,
-            value: jsonValue
-          }
-        };
-      } catch (error) {
-        showMessage('无效的 JSON 格式: ' + error.message, 'error');
-        return;
-      }
-    }
-  } else if (actionType === 'modifyResponseHeaders') {
-    const operation = responseHeadersOperationSelect.value;
-    
-    if (operation === 'delete') {
-      const deleteKeys = getKeysFromContainer(responseHeadersDeleteList);
-      
-      if (deleteKeys.length === 0) {
-        showMessage('请至少添加一个要删除的响应头', 'error');
-        return;
-      }
-      
-      rule.action.modifications = {
-        responseHeaders: {
-          delete: deleteKeys
-        }
-      };
-    } else {
-      // addOrUpdate
-      const pairs = getKeyValuePairsFromContainer(responseHeadersPairsList);
-      
-      if (Object.keys(pairs).length === 0) {
-        showMessage('请至少添加一个响应头', 'error');
-        return;
-      }
-      
-      rule.action.modifications = {
-        responseHeaders: {
-          addOrUpdate: pairs
-        }
-      };
-    }
-  }
-  
-  try {
-    if (editingRuleId) {
-      // 更新规则
-      const index = currentRules.findIndex(r => r.id === editingRuleId);
-      currentRules[index] = rule;
-      await chrome.runtime.sendMessage({ 
-        type: 'UPDATE_RULE', 
-        ruleId: editingRuleId,
-        rule 
-      });
-      showMessage(getMessage('ruleUpdated'), 'success');
-    } else {
-      // 添加规则
-      currentRules.push(rule);
-      await chrome.runtime.sendMessage({ 
-        type: 'ADD_RULE', 
-        rule 
-      });
-      showMessage(getMessage('ruleAdded'), 'success');
-    }
-    
-    // 刷新列表
-    await loadRules();
-    closeRuleModal();
-  } catch (error) {
-    console.error('Failed to save rule:', error);
-    showMessage(getMessage('saveFailed'), 'error');
-  }
-}
-
-// 编辑规则
-function editRule(ruleId) {
-  openRuleModal(ruleId);
-}
-
-// 删除规则
-async function deleteRule(ruleId) {
-  if (!confirm(getMessage('confirmDeleteRule'))) {
-    return;
-  }
-  
-  try {
-    await chrome.runtime.sendMessage({ 
-      type: 'DELETE_RULE', 
-      ruleId 
-    });
-    
-    currentRules = currentRules.filter(r => r.id !== ruleId);
-    renderRules();
-    showMessage(getMessage('ruleDeleted'), 'success');
-  } catch (error) {
-    console.error('Failed to delete rule:', error);
-    showMessage(getMessage('saveFailed'), 'error');
-  }
-}
-
-// 上移规则
-async function moveRuleUp(ruleId) {
-  const index = currentRules.findIndex(r => r.id === ruleId);
-  if (index <= 0) return;
-  
-  // 交换位置
-  [currentRules[index], currentRules[index - 1]] = [currentRules[index - 1], currentRules[index]];
-  
-  try {
-    await chrome.runtime.sendMessage({ 
-      type: 'REORDER_RULES', 
-      rules: currentRules 
-    });
-    renderRules();
-  } catch (error) {
-    console.error('Failed to reorder rules:', error);
-    showMessage(getMessage('saveFailed'), 'error');
-  }
-}
-
-// 下移规则
-async function moveRuleDown(ruleId) {
-  const index = currentRules.findIndex(r => r.id === ruleId);
-  if (index < 0 || index >= currentRules.length - 1) return;
-  
-  // 交换位置
-  [currentRules[index], currentRules[index + 1]] = [currentRules[index + 1], currentRules[index]];
-  
-  try {
-    await chrome.runtime.sendMessage({ 
-      type: 'REORDER_RULES', 
-      rules: currentRules 
-    });
-    renderRules();
-  } catch (error) {
-    console.error('Failed to reorder rules:', error);
-    showMessage(getMessage('saveFailed'), 'error');
-  }
-}
-
-// 保存基础配置
-async function handleSave() {
-  try {
-    const maxRequests = parseInt(maxRequestsInput.value, 10);
-    if (isNaN(maxRequests) || maxRequests < 10 || maxRequests > 10000) {
-      showMessage(getMessage('maxRequestsRange'), 'error');
-      return;
-    }
-
-    const config = {
-      autoStart: autoStartCheckbox.checked,
-      captureStaticResources: captureStaticResourcesCheckbox.checked,
-      maxRequests: maxRequests
-    };
-    
-    // 发送消息到后台保存配置
-    const response = await chrome.runtime.sendMessage({
-      type: 'CONFIG_UPDATED',
-      config: config
-    });
-    
-    if (response.success) {
-      showMessage(getMessage('settingsSaved'), 'success');
-    } else {
-      showMessage(getMessage('saveFailed'), 'error');
-    }
-  } catch (error) {
-    console.error('Failed to save config:', error);
-    showMessage(getMessage('saveFailed') + ': ' + error.message, 'error');
-  }
-}
-
-// 恢复默认配置
-async function handleReset() {
-  if (!confirm(getMessage('confirmClear'))) {
-    return;
-  }
-
-  autoStartCheckbox.checked = DEFAULT_CONFIG.autoStart;
-  captureStaticResourcesCheckbox.checked = DEFAULT_CONFIG.captureStaticResources;
-  maxRequestsInput.value = DEFAULT_CONFIG.maxRequests;
-  
-  showMessage(getMessage('defaultSettingsRestored'), 'success');
-}
-
-// 显示消息
-function showMessage(text, type = 'success') {
-  saveMessage.textContent = text;
-  saveMessage.className = `message ${type}`;
-  
-  setTimeout(() => {
-    saveMessage.classList.add('hidden');
-  }, 3000);
-}
-
-// 生成唯一 ID
-function generateId() {
-  return `rule_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
-}
-
-// HTML 转义
-function escapeHtml(text) {
-  const div = document.createElement('div');
-  div.textContent = text;
-  return div.innerHTML;
 }
 
 // 页面加载时初始化
