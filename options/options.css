@@ -207,6 +207,17 @@ input[type="text"] {
   border: 1px solid #137333;
 }
 
+.rule-badge.modifyRequestBody,
+.rule-badge.modifyQuery,
+.rule-badge.modifyHeaders,
+.rule-badge.modifyResponseBody,
+.rule-badge.modifyResponseHeaders,
+.rule-badge.modify {
+  background: #fef7e0;
+  color: #f57c00;
+  border: 1px solid #f9ab00;
+}
+
 .rule-actions {
   display: flex;
   gap: 4px;
@@ -484,14 +495,11 @@ input[type="text"] {
 }
 
 #text-pattern,
-#text-replacement {
+#text-replacement,
+#response-body-text-pattern,
+#response-body-text-replacement {
   width: 100%;
   margin-bottom: 12px;
-}
-
-.rule-badge.modify {
-  background: #fef7e0;
-  color: #f57c00;
 }
 
 /* Key-Value List Styles */

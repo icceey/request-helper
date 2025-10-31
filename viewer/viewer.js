@@ -11,14 +11,16 @@ let selectedStatusCodes = new Set(); // 选中的状态码
 let selectedMethods = new Set(); // 选中的请求方法
 let selectedRules = new Set(); // 选中的捕获规则
 let showSlowRequestsOnly = false; // 是否仅显示慢请求
-let searchScopes = new Set(['url']); // 搜索范围：url, requestBody, responseBody
+let searchScopes = new Set(['url']); // 搜索范围：url, requestHeaders, requestBody, responseHeaders, responseBody
 
 // DOM元素
 const requestsList = document.getElementById('requests-list');
 const requestDetails = document.getElementById('request-details');
 const searchInput = document.getElementById('search-input');
 const searchUrlCheckbox = document.getElementById('search-url');
+const searchRequestHeadersCheckbox = document.getElementById('search-request-headers');
 const searchRequestBodyCheckbox = document.getElementById('search-request-body');
+const searchResponseHeadersCheckbox = document.getElementById('search-response-headers');
 const searchResponseBodyCheckbox = document.getElementById('search-response-body');
 const methodFilterBtn = document.getElementById('method-filter-btn');
 const methodFilterDropdown = document.getElementById('method-filter-dropdown');
@@ -34,6 +36,7 @@ const ruleFilterList = document.getElementById('rule-filter-list');
 const ruleClearBtn = document.getElementById('rule-clear-btn');
 const slowRequestBtn = document.getElementById('slow-request-btn');
 const clearBtn = document.getElementById('clear-btn');
+const resizer = document.getElementById('resizer');
 
 // 显示 Toast 提示
 function showToast(message, type = 'success') {
@@ -70,7 +73,9 @@ async function init() {
   // 绑定事件
   searchInput.addEventListener('input', handleFilter);
   searchUrlCheckbox.addEventListener('change', handleSearchScopeChange);
+  searchRequestHeadersCheckbox.addEventListener('change', handleSearchScopeChange);
   searchRequestBodyCheckbox.addEventListener('change', handleSearchScopeChange);
+  searchResponseHeadersCheckbox.addEventListener('change', handleSearchScopeChange);
   searchResponseBodyCheckbox.addEventListener('change', handleSearchScopeChange);
   methodFilterBtn.addEventListener('click', toggleMethodDropdown);
   methodClearBtn.addEventListener('click', clearMethodFilter);
@@ -96,6 +101,55 @@ async function init() {
 
   // 监听后台消息
   chrome.runtime.onMessage.addListener(handleBackgroundMessage);
+  
+  // 初始化拖拽分隔线
+  initResizer();
+}
+
+// 初始化拖拽分隔线
+function initResizer() {
+  let isResizing = false;
+  let startX = 0;
+  let startWidth = 0;
+  
+  const container = document.querySelector('.requests-container');
+  
+  resizer.addEventListener('mousedown', (e) => {
+    isResizing = true;
+    startX = e.clientX;
+    startWidth = requestsList.offsetWidth;
+    
+    // 添加选择禁用样式，防止拖拽时文本被选中
+    document.body.style.userSelect = 'none';
+    document.body.style.cursor = 'col-resize';
+    
+    e.preventDefault();
+  });
+  
+  document.addEventListener('mousemove', (e) => {
+    if (!isResizing) return;
+    
+    const deltaX = e.clientX - startX;
+    const newWidth = startWidth + deltaX;
+    const containerWidth = container.offsetWidth;
+    
+    // 限制最小和最大宽度（20% - 60%）
+    const minWidth = containerWidth * 0.2;
+    const maxWidth = containerWidth * 0.6;
+    
+    if (newWidth >= minWidth && newWidth <= maxWidth) {
+      const percentage = (newWidth / containerWidth * 100);
+      requestsList.style.width = `${percentage}%`;
+    }
+  });
+  
+  document.addEventListener('mouseup', () => {
+    if (isResizing) {
+      isResizing = false;
+      document.body.style.userSelect = '';
+      document.body.style.cursor = '';
+    }
+  });
 }
 
 // 加载请求列表
@@ -447,9 +501,19 @@ function handleFilter() {
         matchFound = true;
       }
       
+      // 在请求头中搜索
+      if (!matchFound && searchScopes.has('requestHeaders') && req.requestHeaders) {
+        matchFound = searchInObject(req.requestHeaders, searchText);
+      }
+      
       // 在请求体中搜索
       if (!matchFound && searchScopes.has('requestBody') && req.requestBody) {
         matchFound = searchInObject(req.requestBody, searchText);
+      }
+      
+      // 在响应头中搜索
+      if (!matchFound && searchScopes.has('responseHeaders') && req.responseHeaders) {
+        matchFound = searchInObject(req.responseHeaders, searchText);
       }
       
       // 在响应体中搜索
@@ -562,7 +626,12 @@ async function selectRequest(id) {
 function renderRequestDetails(request) {
   const html = `
     <div class="detail-section">
-      <h3>${getMessage('general')}</h3>
+      <div class="section-header">
+        <h3>${getMessage('general')}</h3>
+        <button class="create-rule-btn" data-request-id="${request.id}" title="${getMessage('createRuleForThisRequest') || 'Create rule for this request'}">
+          📋 <span data-i18n="createRule">${getMessage('createRule')}</span>
+        </button>
+      </div>
       <div class="detail-grid">
         <span class="detail-label">${getMessage('url')}:</span>
         <span class="detail-value">${request.url}</span>
@@ -636,6 +705,11 @@ function renderRequestDetails(request) {
   setTimeout(() => {
     document.querySelectorAll('.copy-btn').forEach(btn => {
       btn.addEventListener('click', handleCopyClick);
+    });
+    
+    // 绑定创建规则按钮事件
+    document.querySelectorAll('.create-rule-btn').forEach(btn => {
+      btn.addEventListener('click', handleCreateRuleClick);
     });
   }, 0);
 }
@@ -1088,6 +1162,88 @@ function getStatusClass(statusCode) {
   if (!statusCode) return '';
   const code = Math.floor(statusCode / 100);
   return `${code}xx`;
+}
+
+// 去除URL中的query参数
+function removeQueryParams(url) {
+  try {
+    const urlObj = new URL(url);
+    return `${urlObj.origin}${urlObj.pathname}`;
+  } catch (error) {
+    // 如果URL解析失败，尝试简单的字符串处理
+    const queryIndex = url.indexOf('?');
+    return queryIndex > 0 ? url.substring(0, queryIndex) : url;
+  }
+}
+
+// 处理创建规则按钮点击
+async function handleCreateRuleClick(e) {
+  const requestId = e.currentTarget.dataset.requestId;
+  const request = allRequests.find(req => req.id === requestId);
+  
+  if (!request) {
+    showToast(getMessage('copyFailed') || 'Request not found', 'error');
+    return;
+  }
+  
+  try {
+    // 从URL中去除query参数
+    const urlWithoutQuery = removeQueryParams(request.url);
+    
+    // 先询问用户确认
+    const confirmed = confirm(
+      `${getMessage('createRuleForThisRequest')}\n\n` +
+      `${getMessage('method')}: ${request.method}\n` +
+      `URL: ${urlWithoutQuery}\n\n` +
+      `${getMessage('ruleAction')}: ${getMessage('capture')}\n\n` +
+      `确认创建此规则吗？`
+    );
+    
+    if (!confirmed) {
+      return; // 用户取消，直接返回
+    }
+    
+    // 转义特殊字符以生成正则表达式
+    const escapedUrl = urlWithoutQuery
+      .replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+    
+    // 构建规则对象
+    const rule = {
+      id: `rule_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
+      name: `${getMessage('capture')} - ${request.method} ${urlWithoutQuery.substring(0, 50)}${urlWithoutQuery.length > 50 ? '...' : ''}`,
+      enabled: true,
+      type: 'url-regex',
+      condition: {
+        pattern: `^${escapedUrl}$`
+      },
+      action: {
+        type: 'capture'
+      }
+    };
+    
+    // 发送消息到后台添加规则（插入到最前面，优先级最高）
+    const response = await chrome.runtime.sendMessage({ 
+      type: 'ADD_RULE', 
+      rule,
+      insertAtBeginning: true // 插入到最前面
+    });
+    
+    if (response.success) {
+      showToast(getMessage('ruleCreatedSuccess') || 'Rule created successfully', 'success');
+      
+      // 询问用户是否打开设置页面查看规则
+      setTimeout(() => {
+        if (confirm(`${getMessage('ruleCreatedSuccess')}！\n\n是否打开设置页面查看规则？`)) {
+          chrome.runtime.openOptionsPage();
+        }
+      }, 500);
+    } else {
+      showToast(getMessage('saveFailed') || 'Failed to create rule', 'error');
+    }
+  } catch (error) {
+    console.error('Failed to create rule:', error);
+    showToast(getMessage('saveFailed') || 'Failed to create rule', 'error');
+  }
 }
 
 // 初始化

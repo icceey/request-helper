@@ -19,8 +19,16 @@
               <span data-i18n="searchUrl">URL</span>
             </label>
             <label class="search-scope-item">
+              <input type="checkbox" id="search-request-headers" value="requestHeaders">
+              <span data-i18n="searchRequestHeaders">Request Headers</span>
+            </label>
+            <label class="search-scope-item">
               <input type="checkbox" id="search-request-body" value="requestBody">
               <span data-i18n="searchRequestBody">Request Body</span>
+            </label>
+            <label class="search-scope-item">
+              <input type="checkbox" id="search-response-headers" value="responseHeaders">
+              <span data-i18n="searchResponseHeaders">Response Headers</span>
             </label>
             <label class="search-scope-item">
               <input type="checkbox" id="search-response-body" value="responseBody">
@@ -77,6 +85,8 @@
             <p class="hint" data-i18n="startCaptureHint">Click "Start Capture" in popup to begin capturing requests</p>
           </div>
         </div>
+        
+        <div class="resizer" id="resizer"></div>
         
         <div class="request-details" id="request-details">
           <div class="empty-state">

@@ -277,10 +277,14 @@ export class StorageManager {
   /**
    * 添加捕获规则
    */
-  static async addRule(rule) {
+  static async addRule(rule, insertAtBeginning = false) {
     try {
       const rules = await this.getRules();
-      rules.push(rule);
+      if (insertAtBeginning) {
+        rules.unshift(rule); // 插入到最前面，优先级最高
+      } else {
+        rules.push(rule); // 添加到最后
+      }
       await this.saveRules(rules);
     } catch (error) {
       console.error('Failed to add rule:', error);

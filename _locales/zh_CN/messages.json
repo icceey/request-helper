@@ -61,9 +61,17 @@
     "message": "URL",
     "description": "搜索范围：URL"
   },
+  "searchRequestHeaders": {
+    "message": "请求头",
+    "description": "搜索范围：请求头"
+  },
   "searchRequestBody": {
     "message": "请求体",
     "description": "搜索范围：请求体"
+  },
+  "searchResponseHeaders": {
+    "message": "响应头",
+    "description": "搜索范围：响应头"
   },
   "searchResponseBody": {
     "message": "响应体",
@@ -627,5 +635,17 @@
   "headerValuePlaceholder": {
     "message": "请求头值",
     "description": "请求头值占位符"
+  },
+  "createRule": {
+    "message": "创建规则",
+    "description": "创建规则按钮"
+  },
+  "createRuleForThisRequest": {
+    "message": "为此请求创建规则",
+    "description": "为此请求创建规则按钮提示"
+  },
+  "ruleCreatedSuccess": {
+    "message": "规则创建成功",
+    "description": "规则创建成功消息"
   }
 }

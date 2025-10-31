@@ -61,9 +61,17 @@
     "message": "URL",
     "description": "Search scope for URL"
   },
+  "searchRequestHeaders": {
+    "message": "Request Headers",
+    "description": "Search scope for request headers"
+  },
   "searchRequestBody": {
     "message": "Request Body",
     "description": "Search scope for request body"
+  },
+  "searchResponseHeaders": {
+    "message": "Response Headers",
+    "description": "Search scope for response headers"
   },
   "searchResponseBody": {
     "message": "Response Body",
@@ -627,5 +635,17 @@
   "headerValuePlaceholder": {
     "message": "header value",
     "description": "Header value placeholder"
+  },
+  "createRule": {
+    "message": "Create Rule",
+    "description": "Create rule button"
+  },
+  "createRuleForThisRequest": {
+    "message": "Create rule for this request",
+    "description": "Create rule for this request button tooltip"
+  },
+  "ruleCreatedSuccess": {
+    "message": "Rule created successfully",
+    "description": "Rule created success message"
   }
 }

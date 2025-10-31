@@ -206,7 +206,7 @@ async function handleMessage(message, sender) {
       return { success: true };
 
     case 'ADD_RULE':
-      await StorageManager.addRule(message.rule);
+      await StorageManager.addRule(message.rule, message.insertAtBeginning);
       // 如果正在捕获，重新加载规则并更新阻断规则
       if (RequestCapture.isCapturing) {
         RequestCapture.captureRules = await StorageManager.getRules();
