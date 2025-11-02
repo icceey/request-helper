@@ -479,6 +479,12 @@ main {
   border-left: 3px solid #1a73e8;
 }
 
+.request-header {
+  display: flex;
+  align-items: center;
+  margin-bottom: 6px;
+}
+
 .request-method {
   display: inline-block;
   padding: 2px 6px;
@@ -497,8 +503,8 @@ main {
 .request-url {
   font-size: 13px;
   color: #333;
-  margin-bottom: 4px;
   word-break: break-all;
+  flex: 1;
 }
 
 .matched-rule-badge {
@@ -549,16 +555,27 @@ main {
   font-size: 12px;
   color: #666;
   display: flex;
-  justify-content: space-between;
+  align-items: center;
   gap: 8px;
+  padding-left: 32px;
 }
 
-.request-meta .duration {
-  font-weight: 600;
+.request-meta .meta-time {
   color: #666;
 }
 
-.request-meta .duration.slow {
+.request-meta .meta-divider {
+  color: #dadce0;
+  font-weight: 300;
+}
+
+.request-meta .meta-duration {
+  font-weight: 600;
+  color: #5f6368;
+  font-family: 'Consolas', 'Monaco', monospace;
+}
+
+.request-meta .meta-duration.slow {
   color: #f9ab00;
   font-weight: 700;
 }

@@ -20,14 +20,16 @@ export function renderRequestsList(requestsList, filteredRequests) {
 
   const html = filteredRequests.map(req => `
     <div class="request-item" data-id="${req.id}">
-      <div>
+      <div class="request-header">
         <span class="request-method method-${req.method}">${req.method}</span>
         <span class="request-url">${truncateUrl(req.url)}</span>
         ${req.matchedRule ? `<span class="matched-rule-badge" title="${getMessage('matchedRule')}: ${escapeHtml(req.matchedRule.name)}">📋 ${escapeHtml(req.matchedRule.name)}</span>` : ''}
       </div>
       <div class="request-meta">
-        <span>${formatTime(req.timestamp)}</span>
-        <span class="duration ${isSlowRequest(req.duration) ? 'slow' : ''}">${formatDuration(req.duration)}</span>
+        <span class="meta-time">${formatTime(req.timestamp)}</span>
+        <span class="meta-divider">|</span>
+        <span class="meta-duration ${isSlowRequest(req.duration) ? 'slow' : ''}">${formatDuration(req.duration)}</span>
+        <span class="meta-divider">|</span>
         ${req.statusCode ? `<span class="status-code status-${getStatusClass(req.statusCode)}">${req.statusCode}</span>` : `<span class="status-code status-pending">${getMessage('pending')}</span>`}
       </div>
     </div>

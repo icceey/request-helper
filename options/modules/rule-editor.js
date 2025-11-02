@@ -140,8 +140,8 @@ export function bindRuleActions(rulesList, handlers) {
   
   rulesList.querySelectorAll('.rule-toggle').forEach(toggle => {
     toggle.addEventListener('change', (e) => {
-      const ruleId = e.target.dataset.ruleId;
-      const enabled = e.target.checked;
+      const ruleId = e.currentTarget.dataset.ruleId;
+      const enabled = e.currentTarget.checked;
       if (handlers.onToggle) handlers.onToggle(ruleId, enabled);
     });
   });
