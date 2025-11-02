@@ -321,10 +321,17 @@ export async function saveRule(elements, saveMessage) {
   try {
     // 保存规则
     const messageType = editingRuleId ? 'UPDATE_RULE' : 'ADD_RULE';
-    const response = await chrome.runtime.sendMessage({
+    const message = {
       type: messageType,
       rule: rule
-    });
+    };
+    
+    // 如果是更新操作，添加 ruleId
+    if (editingRuleId) {
+      message.ruleId = editingRuleId;
+    }
+    
+    const response = await chrome.runtime.sendMessage(message);
     
     if (response.success) {
       currentRules = response.rules || [];
@@ -593,6 +600,7 @@ export async function toggleRuleEnabled(ruleId, enabled) {
   try {
     const response = await chrome.runtime.sendMessage({
       type: 'UPDATE_RULE',
+      ruleId: ruleId,
       rule: rule
     });
     

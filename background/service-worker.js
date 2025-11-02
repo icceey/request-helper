@@ -216,12 +216,13 @@ async function handleMessage(message, sender) {
 
     case 'UPDATE_RULE':
       await StorageManager.updateRule(message.ruleId, message.rule);
+      const updatedRules = await StorageManager.getRules();
       // 如果正在捕获，重新加载规则并更新阻断规则
       if (RequestCapture.isCapturing) {
-        RequestCapture.captureRules = await StorageManager.getRules();
+        RequestCapture.captureRules = updatedRules;
         await RequestCapture.updateBlockRules();
       }
-      return { success: true };
+      return { success: true, rules: updatedRules };
 
     case 'DELETE_RULE':
       await StorageManager.deleteRule(message.ruleId);

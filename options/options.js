@@ -237,7 +237,21 @@ async function handleMoveRuleDown(ruleId) {
 async function handleToggleRule(ruleId, enabled) {
   const success = await toggleRuleEnabled(ruleId, enabled);
   if (success) {
-    await loadAndRenderRules(); // 重新加载并渲染规则
+    // 只更新对应规则项的显示状态，不重新渲染整个列表
+    const ruleItem = rulesList.querySelector(`[data-rule-id="${ruleId}"]`);
+    if (ruleItem) {
+      if (enabled) {
+        ruleItem.classList.remove('disabled');
+      } else {
+        ruleItem.classList.add('disabled');
+      }
+    }
+  } else {
+    // 如果失败，恢复开关状态
+    const toggle = rulesList.querySelector(`.rule-toggle[data-rule-id="${ruleId}"]`);
+    if (toggle) {
+      toggle.checked = !enabled;
+    }
   }
 }
 
