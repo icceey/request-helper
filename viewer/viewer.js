@@ -142,22 +142,29 @@ function bindEvents() {
 
   // 点击外部关闭下拉菜单
   document.addEventListener('click', (e) => {
-    if (!e.target.closest('.method-filter-container')) {
-      methodFilterDropdown.classList.remove('show');
-    }
-    if (!e.target.closest('.status-filter-container')) {
-      statusFilterDropdown.classList.remove('show');
-    }
-    if (!e.target.closest('.rule-filter-container')) {
-      ruleFilterDropdown.classList.remove('show');
+    if (!e.target.closest('.method-filter-container') && 
+        !e.target.closest('.status-filter-container') &&
+        !e.target.closest('.rule-filter-container')) {
+      closeAllDropdowns();
     }
   });
+}
+
+// 关闭所有下拉菜单
+function closeAllDropdowns() {
+  methodFilterDropdown.classList.remove('show');
+  statusFilterDropdown.classList.remove('show');
+  ruleFilterDropdown.classList.remove('show');
 }
 
 // 切换方法下拉菜单
 function toggleMethodDropdown(e) {
   e.stopPropagation();
-  methodFilterDropdown.classList.toggle('show');
+  const isShowing = methodFilterDropdown.classList.contains('show');
+  closeAllDropdowns();
+  if (!isShowing) {
+    methodFilterDropdown.classList.add('show');
+  }
   
   // 重新绑定复选框事件
   methodFilterList.querySelectorAll('input[type="checkbox"]').forEach(checkbox => {
@@ -183,7 +190,11 @@ function handleMethodFilterChange(e) {
 // 切换状态码下拉菜单
 function toggleStatusDropdown(e) {
   e.stopPropagation();
-  statusFilterDropdown.classList.toggle('show');
+  const isShowing = statusFilterDropdown.classList.contains('show');
+  closeAllDropdowns();
+  if (!isShowing) {
+    statusFilterDropdown.classList.add('show');
+  }
   
   // 重新绑定复选框事件
   statusFilterList.querySelectorAll('input[type="checkbox"]').forEach(checkbox => {
@@ -211,7 +222,11 @@ function handleStatusFilterChange(e) {
 // 切换规则下拉菜单
 function toggleRuleDropdown(e) {
   e.stopPropagation();
-  ruleFilterDropdown.classList.toggle('show');
+  const isShowing = ruleFilterDropdown.classList.contains('show');
+  closeAllDropdowns();
+  if (!isShowing) {
+    ruleFilterDropdown.classList.add('show');
+  }
   
   // 重新绑定复选框事件
   ruleFilterList.querySelectorAll('input[type="checkbox"]').forEach(checkbox => {
