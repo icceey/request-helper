@@ -6,7 +6,7 @@
 import { getMessage, translatePage } from '../utils/i18n.js';
 import { loadConfig, saveConfig, resetConfig, switchTab } from './modules/config-manager.js';
 import { addKeyValuePair, addKeyItem, showMessage } from './modules/form-utils.js';
-import { loadRules, renderRules, bindRuleActions, openRuleModal, closeRuleModal, saveRule, deleteRule, moveRuleUp, moveRuleDown } from './modules/rule-editor.js';
+import { loadRules, renderRules, bindRuleActions, openRuleModal, closeRuleModal, saveRule, deleteRule, moveRuleUp, moveRuleDown, toggleRuleEnabled } from './modules/rule-editor.js';
 
 // DOM 元素 - Tabs
 const tabButtons = document.querySelectorAll('.tab-button');
@@ -31,7 +31,6 @@ const modalClose = document.getElementById('modal-close');
 const modalCancel = document.getElementById('modal-cancel');
 const modalSave = document.getElementById('modal-save');
 const ruleNameInput = document.getElementById('rule-name');
-const ruleEnabledCheckbox = document.getElementById('rule-enabled');
 const ruleTypeSelect = document.getElementById('rule-type');
 const rulePatternInput = document.getElementById('rule-pattern');
 const ruleActionSelect = document.getElementById('rule-action');
@@ -92,7 +91,6 @@ const modalElements = {
   modal: ruleModal,
   modalTitle: modalTitle,
   ruleName: ruleNameInput,
-  ruleEnabled: ruleEnabledCheckbox,
   ruleType: ruleTypeSelect,
   rulePattern: rulePatternInput,
   ruleAction: ruleActionSelect,
@@ -165,7 +163,8 @@ async function loadAndRenderRules() {
       onEdit: handleEditRule,
       onDelete: handleDeleteRule,
       onMoveUp: handleMoveRuleUp,
-      onMoveDown: handleMoveRuleDown
+      onMoveDown: handleMoveRuleDown,
+      onToggle: handleToggleRule
     });
   } catch (error) {
     console.error('Failed to load rules:', error);
@@ -229,6 +228,14 @@ async function handleMoveRuleUp(ruleId) {
 // 下移规则
 async function handleMoveRuleDown(ruleId) {
   const success = await moveRuleDown(ruleId);
+  if (success) {
+    await loadAndRenderRules(); // 重新加载并渲染规则
+  }
+}
+
+// 切换规则启用状态
+async function handleToggleRule(ruleId, enabled) {
+  const success = await toggleRuleEnabled(ruleId, enabled);
   if (success) {
     await loadAndRenderRules(); // 重新加载并渲染规则
   }

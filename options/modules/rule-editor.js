@@ -74,10 +74,11 @@ export function renderRules(rulesList, emptyRules) {
     <div class="rule-item ${rule.enabled ? '' : 'disabled'}" data-rule-id="${rule.id}">
       <div class="rule-header">
         <div class="rule-info">
+          <label class="toggle-switch">
+            <input type="checkbox" class="rule-toggle" data-rule-id="${rule.id}" ${rule.enabled ? 'checked' : ''}>
+            <span class="toggle-slider"></span>
+          </label>
           <span class="rule-name">${escapeHtml(rule.name)}</span>
-          <span class="rule-badge ${rule.enabled ? 'enabled' : 'disabled'}" data-i18n="${rule.enabled ? 'enabled' : 'disabled'}">
-            ${getMessage(rule.enabled ? 'enabled' : 'disabled')}
-          </span>
           <span class="rule-badge ${rule.action.type}">
             ${getRuleActionName(rule.action.type)}
           </span>
@@ -136,6 +137,14 @@ export function bindRuleActions(rulesList, handlers) {
       if (handlers.onMoveDown) handlers.onMoveDown(ruleId);
     });
   });
+  
+  rulesList.querySelectorAll('.rule-toggle').forEach(toggle => {
+    toggle.addEventListener('change', (e) => {
+      const ruleId = e.target.dataset.ruleId;
+      const enabled = e.target.checked;
+      if (handlers.onToggle) handlers.onToggle(ruleId, enabled);
+    });
+  });
 }
 
 // 打开规则编辑模态框
@@ -149,7 +158,6 @@ export function openRuleModal(ruleId, elements) {
     
     elements.modalTitle.textContent = getMessage('editRule');
     elements.ruleName.value = rule.name;
-    elements.ruleEnabled.checked = rule.enabled;
     elements.ruleType.value = rule.type;
     elements.rulePattern.value = rule.condition.pattern;
     elements.ruleAction.value = rule.action.type;
@@ -236,7 +244,6 @@ function loadModifyConfig(rule, elements) {
 function resetModalForm(elements) {
   elements.modalTitle.textContent = getMessage('addNewRule');
   elements.ruleName.value = '';
-  elements.ruleEnabled.checked = true;
   elements.ruleType.value = 'url-regex';
   elements.rulePattern.value = '';
   elements.ruleAction.value = 'capture';
@@ -270,7 +277,6 @@ export function closeRuleModal(modal) {
 // 保存规则
 export async function saveRule(elements, saveMessage) {
   const name = elements.ruleName.value.trim();
-  const enabled = elements.ruleEnabled.checked;
   const type = elements.ruleType.value;
   const pattern = elements.rulePattern.value.trim();
   const actionType = elements.ruleAction.value;
@@ -298,7 +304,7 @@ export async function saveRule(elements, saveMessage) {
   const rule = {
     id: editingRuleId || generateId(),
     name,
-    enabled,
+    enabled: editingRuleId ? currentRules.find(r => r.id === editingRuleId).enabled : true,
     type,
     condition: { pattern },
     action: { type: actionType }
@@ -573,6 +579,30 @@ export async function moveRuleDown(ruleId) {
     return response.success;
   } catch (error) {
     console.error('Failed to move rule down:', error);
+    return false;
+  }
+}
+
+// 切换规则启用状态
+export async function toggleRuleEnabled(ruleId, enabled) {
+  const rule = currentRules.find(r => r.id === ruleId);
+  if (!rule) return false;
+  
+  rule.enabled = enabled;
+  
+  try {
+    const response = await chrome.runtime.sendMessage({
+      type: 'UPDATE_RULE',
+      rule: rule
+    });
+    
+    if (response.success) {
+      currentRules = response.rules || [];
+      return true;
+    }
+    return false;
+  } catch (error) {
+    console.error('Failed to toggle rule:', error);
     return false;
   }
 }
