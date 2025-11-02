@@ -5,7 +5,7 @@
 
 import { getMessage } from '../../utils/i18n.js';
 import { state, selectRequest as updateSelectedRequest } from './state.js';
-import { truncateUrl, formatTime, getStatusClass, escapeHtml } from './utils.js';
+import { truncateUrl, formatTime, formatDuration, isSlowRequest, getStatusClass, escapeHtml } from './utils.js';
 
 // 渲染请求列表
 export function renderRequestsList(requestsList, filteredRequests) {
@@ -27,6 +27,7 @@ export function renderRequestsList(requestsList, filteredRequests) {
       </div>
       <div class="request-meta">
         <span>${formatTime(req.timestamp)}</span>
+        <span class="duration ${isSlowRequest(req.duration) ? 'slow' : ''}">${formatDuration(req.duration)}</span>
         ${req.statusCode ? `<span class="status-code status-${getStatusClass(req.statusCode)}">${req.statusCode}</span>` : `<span class="status-code status-pending">${getMessage('pending')}</span>`}
       </div>
     </div>

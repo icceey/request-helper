@@ -550,6 +550,17 @@ main {
   color: #666;
   display: flex;
   justify-content: space-between;
+  gap: 8px;
+}
+
+.request-meta .duration {
+  font-weight: 600;
+  color: #666;
+}
+
+.request-meta .duration.slow {
+  color: #f9ab00;
+  font-weight: 700;
 }
 
 .status-code {

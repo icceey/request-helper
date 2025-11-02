@@ -28,6 +28,20 @@ export function formatTime(timestamp) {
   return `${year}-${month}-${day} ${hours}:${minutes}:${seconds}`;
 }
 
+// 格式化耗时
+export function formatDuration(duration) {
+  if (duration === undefined || duration === null) return '-';
+  if (duration < 1000) {
+    return `${Math.round(duration)}ms`;
+  }
+  return `${(duration / 1000).toFixed(2)}s`;
+}
+
+// 判断是否为慢请求（超过1秒）
+export function isSlowRequest(duration) {
+  return duration && duration > 1000;
+}
+
 // 获取状态码类别
 export function getStatusClass(statusCode) {
   if (!statusCode) return '';
