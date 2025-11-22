@@ -104,9 +104,20 @@ h2 {
 
 .setting-item label {
   display: flex;
-  align-items: center;
+  align-items: flex-start;
   gap: 8px;
   cursor: pointer;
+}
+
+.setting-item label span {
+  flex: 1;
+}
+
+.setting-description {
+  margin-top: 4px;
+  font-size: 12px;
+  color: #5f6368;
+  margin-left: 26px; /* Align with checkbox text */
 }
 
 input[type="checkbox"] {

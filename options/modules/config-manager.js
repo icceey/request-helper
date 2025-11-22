@@ -12,7 +12,8 @@ export const DEFAULT_CONFIG = {
   urlPatterns: ['*://*/*'],
   maxRequests: 1000,
   enabled: false,
-  captureStaticResources: false
+  captureStaticResources: false,
+  captureErrorSlowOnly: false
 };
 
 // 加载配置
@@ -26,11 +27,13 @@ export async function loadConfig(elements, saveMessage) {
       // 填充表单
       elements.autoStart.checked = config.autoStart || false;
       elements.captureStaticResources.checked = config.captureStaticResources || false;
+      elements.captureErrorSlowOnly.checked = config.captureErrorSlowOnly || false;
       elements.maxRequests.value = config.maxRequests || DEFAULT_CONFIG.maxRequests;
     } else {
       // 使用默认配置
       elements.autoStart.checked = DEFAULT_CONFIG.autoStart;
       elements.captureStaticResources.checked = DEFAULT_CONFIG.captureStaticResources;
+      elements.captureErrorSlowOnly.checked = DEFAULT_CONFIG.captureErrorSlowOnly;
       elements.maxRequests.value = DEFAULT_CONFIG.maxRequests;
     }
   } catch (error) {
@@ -51,6 +54,7 @@ export async function saveConfig(elements, saveMessage) {
     const config = {
       autoStart: elements.autoStart.checked,
       captureStaticResources: elements.captureStaticResources.checked,
+      captureErrorSlowOnly: elements.captureErrorSlowOnly.checked,
       maxRequests: maxRequests
     };
     
@@ -79,6 +83,7 @@ export function resetConfig(elements, saveMessage) {
 
   elements.autoStart.checked = DEFAULT_CONFIG.autoStart;
   elements.captureStaticResources.checked = DEFAULT_CONFIG.captureStaticResources;
+  elements.captureErrorSlowOnly.checked = DEFAULT_CONFIG.captureErrorSlowOnly;
   elements.maxRequests.value = DEFAULT_CONFIG.maxRequests;
   
   showMessage(saveMessage, getMessage('defaultSettingsRestored'), 'success');

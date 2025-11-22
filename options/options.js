@@ -14,6 +14,7 @@ const tabButtons = document.querySelectorAll('.tab-button');
 // DOM 元素 - Basic Settings
 const autoStartCheckbox = document.getElementById('auto-start');
 const captureStaticResourcesCheckbox = document.getElementById('capture-static-resources');
+const captureErrorSlowOnlyCheckbox = document.getElementById('capture-error-slow-only');
 const maxRequestsInput = document.getElementById('max-requests');
 const saveBtn = document.getElementById('save-btn');
 const resetBtn = document.getElementById('reset-btn');
@@ -83,6 +84,7 @@ const addResponseHeaderDeleteKeyBtn = document.getElementById('add-response-head
 const configElements = {
   autoStart: autoStartCheckbox,
   captureStaticResources: captureStaticResourcesCheckbox,
+  captureErrorSlowOnly: captureErrorSlowOnlyCheckbox,
   maxRequests: maxRequestsInput
 };
 

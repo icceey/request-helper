@@ -158,7 +158,7 @@ export class RequestCapture {
    * 检查是否应该捕获此请求
    * @returns {Object|false} 返回匹配的规则对象，或false（不捕获）
    */
-  static shouldCapture(url, type, method = 'GET') {
+  static shouldCapture(url, type, method = 'GET', statusCode = null, duration = null) {
     if (!this.isCapturing) {
       return false;
     }
@@ -175,7 +175,29 @@ export class RequestCapture {
 
     // 使用新的规则系统进行匹配
     const matchedRule = this.matchesCaptureRules(url, method);
-    return matchedRule || false;
+    if (!matchedRule) {
+      return false;
+    }
+
+    // 如果设置了仅捕获错慢请求
+    if (this.config?.captureErrorSlowOnly) {
+      // 初始检查（还没有状态码和耗时），先允许捕获
+      if (statusCode === null && duration === null) {
+        return matchedRule;
+      }
+      
+      // 检查状态码是否≥400 (包括0: 网络错误)
+      const isError = (statusCode === 0) || (statusCode && statusCode >= 400);
+      // 检查耗时是否≥1秒(1000ms)
+      const isSlow = duration && duration >= 1000;
+      
+      // 如果既不是错误也不是慢请求，则不捕获
+      if (!isError && !isSlow) {
+        return false;
+      }
+    }
+
+    return matchedRule;
   }
 
   /**
@@ -209,11 +231,6 @@ export class RequestCapture {
    * 请求发送时（捕获请求头）
    */
   static onSendHeaders(details) {
-    const matchedRule = this.shouldCapture(details.url, details.type, details.method);
-    if (!matchedRule) {
-      return;
-    }
-
     const requestData = this.pendingRequests.get(details.requestId);
     if (requestData) {
       requestData.requestHeaders = this.formatHeaders(details.requestHeaders);
@@ -225,11 +242,6 @@ export class RequestCapture {
    * 响应头接收（捕获响应头）
    */
   static onHeadersReceived(details) {
-    const matchedRule = this.shouldCapture(details.url, details.type, details.method);
-    if (!matchedRule) {
-      return;
-    }
-
     const requestData = this.pendingRequests.get(details.requestId);
     if (requestData) {
       requestData.statusCode = details.statusCode;
@@ -243,49 +255,81 @@ export class RequestCapture {
    * 请求完成
    */
   static async onCompleted(details) {
-    const matchedRule = this.shouldCapture(details.url, details.type, details.method);
-    if (!matchedRule) {
+    const requestData = this.pendingRequests.get(details.requestId);
+    if (!requestData) {
       return;
     }
 
-    const requestData = this.pendingRequests.get(details.requestId);
-    if (requestData) {
-      requestData.completed = true;
-      requestData.completedTimestamp = details.timeStamp;
-      requestData.duration = details.timeStamp - requestData.timestamp;
-      requestData.fromCache = details.fromCache;
-      requestData.ip = details.ip;
-
-      // 尝试获取响应体
-      await this.fetchResponseBody(requestData);
-
-      // 保存请求数据
-      await StorageManager.saveRequest(requestData);
-
-      // 清理已完成的请求
+    // 计算请求耗时
+    const duration = details.timeStamp - requestData.timestamp;
+    
+    // 再次检查是否应该捕获此请求（现在有了状态码和耗时信息）
+    const matchedRule = this.shouldCapture(
+      requestData.url, 
+      details.type, 
+      requestData.method,
+      details.statusCode,
+      duration
+    );
+    
+    if (!matchedRule) {
+      // 如果不符合捕获条件，清理pendingRequests中的数据
       this.pendingRequests.delete(details.requestId);
+      return;
     }
+
+    requestData.completed = true;
+    requestData.completedTimestamp = details.timeStamp;
+    requestData.duration = duration;
+    requestData.fromCache = details.fromCache;
+    requestData.ip = details.ip;
+
+    // 尝试获取响应体
+    await this.fetchResponseBody(requestData);
+
+    // 保存请求数据
+    await StorageManager.saveRequest(requestData);
+
+    // 清理已完成的请求
+    this.pendingRequests.delete(details.requestId);
   }
 
   /**
    * 请求错误
    */
-  static onError(details) {
-    const matchedRule = this.shouldCapture(details.url, details.type, details.method);
-    if (!matchedRule) {
+  static async onError(details) {
+    const requestData = this.pendingRequests.get(details.requestId);
+    if (!requestData) {
       return;
     }
-
-    const requestData = this.pendingRequests.get(details.requestId);
-    if (requestData) {
-      requestData.error = details.error;
-      requestData.errorTimestamp = details.timeStamp;
-
-      // 保存错误的请求
-      StorageManager.saveRequest(requestData);
-
+    
+    // 对于错误请求，我们视为状态码为0（错误）
+    const statusCode = 0; // 使用0表示错误状态
+    
+    // 再次检查是否应该捕获此请求（错误请求通常被视为错误状态）
+    const matchedRule = this.shouldCapture(
+      requestData.url, 
+      details.type, 
+      requestData.method,
+      statusCode,
+      null // 错误请求可能没有准确的耗时信息
+    );
+    
+    if (!matchedRule) {
+      // 如果不符合捕获条件，清理pendingRequests中的数据
       this.pendingRequests.delete(details.requestId);
+      return;
     }
+    
+    requestData.error = details.error;
+    requestData.errorTimestamp = details.timeStamp;
+    // 错误请求的状态码设为0，表示这是一个错误请求
+    requestData.statusCode = 0;
+
+    // 保存错误的请求
+    await StorageManager.saveRequest(requestData);
+
+    this.pendingRequests.delete(details.requestId);
   }
 
   /**
@@ -388,8 +432,15 @@ export class RequestCapture {
     // 重新加载规则（防止规则在运行时被修改）
     this.captureRules = await StorageManager.getRules();
 
-    // 检查是否应该捕获此请求
-    const matchedRule = this.shouldCapture(capturedData.url, capturedData.type, capturedData.method);
+    // 再次检查是否应该捕获此请求（现在有了状态码和耗时信息）
+    const matchedRule = this.shouldCapture(
+      capturedData.url, 
+      capturedData.type, 
+      capturedData.method,
+      capturedData.statusCode,
+      capturedData.duration
+    );
+    
     if (!matchedRule) {
       return;
     }

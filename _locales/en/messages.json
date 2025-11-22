@@ -134,6 +134,14 @@
     "message": "Capture static resources (images, CSS, JS, fonts, etc.)",
     "description": "Capture static resources option"
   },
+  "captureErrorSlowOnly": {
+    "message": "Capture error and slow requests only",
+    "description": "Capture error and slow requests only option"
+  },
+  "captureErrorSlowOnlyDescription": {
+    "message": "Only capture requests with status code ≥ 400 or duration ≥ 1 second",
+    "description": "Capture error and slow requests only description"
+  },
   "urlFilterRules": {
     "message": "URL Filter Rules",
     "description": "URL filter section"

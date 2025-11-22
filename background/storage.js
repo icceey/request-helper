@@ -213,7 +213,8 @@ export class StorageManager {
         enabled: false,
         autoStart: false,
         maxRequests: this.MAX_REQUESTS,
-        captureStaticResources: false // 默认不捕获静态资源
+        captureStaticResources: false, // 默认不捕获静态资源
+        captureErrorSlowOnly: false // 默认不限制仅捕获错慢请求
       };
       return config;
     } catch (error) {
@@ -223,7 +224,8 @@ export class StorageManager {
         enabled: false,
         autoStart: false,
         maxRequests: this.MAX_REQUESTS,
-        captureStaticResources: false // 默认不捕获静态资源
+        captureStaticResources: false, // 默认不捕获静态资源
+        captureErrorSlowOnly: false // 默认不限制仅捕获错慢请求
       };
     }
   }

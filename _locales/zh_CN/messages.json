@@ -134,6 +134,14 @@
     "message": "捕获静态资源（图片、CSS、JS、字体等）",
     "description": "捕获静态资源选项"
   },
+  "captureErrorSlowOnly": {
+    "message": "仅捕获错误和慢请求",
+    "description": "仅捕获错误和慢请求选项"
+  },
+  "captureErrorSlowOnlyDescription": {
+    "message": "仅捕获状态码≥400或耗时≥1秒的请求",
+    "description": "仅捕获错误和慢请求描述"
+  },
   "urlFilterRules": {
     "message": "URL 过滤规则",
     "description": "URL 过滤部分"

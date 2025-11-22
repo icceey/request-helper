@@ -55,6 +55,15 @@
               <span data-i18n="captureStaticResources">Capture static resources (images, CSS, JS, fonts, etc.)</span>
             </label>
           </div>
+          <div class="setting-item">
+            <label>
+              <input type="checkbox" id="capture-error-slow-only" />
+              <span data-i18n="captureErrorSlowOnly">Capture error and slow requests only</span>
+            </label>
+            <div class="setting-description" data-i18n="captureErrorSlowOnlyDescription">
+              Only capture requests with status code ≥ 400 or duration ≥ 1 second
+            </div>
+          </div>
         </section>
 
         <section class="settings-section">
