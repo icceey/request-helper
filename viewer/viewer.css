@@ -505,8 +505,10 @@ main {
 .request-url {
   font-size: 13px;
   color: #333;
-  word-break: break-all;
   flex: 1;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .matched-rule-badge {

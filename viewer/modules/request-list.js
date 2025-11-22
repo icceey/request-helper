@@ -22,7 +22,7 @@ export function renderRequestsList(requestsList, filteredRequests) {
     <div class="request-item" data-id="${req.id}">
       <div class="request-header">
         <span class="request-method method-${req.method}">${req.method}</span>
-        <span class="request-url">${truncateUrl(req.url)}</span>
+        <span class="request-url" title="${escapeHtml(req.url)}">${escapeHtml(req.url)}</span>
         ${req.matchedRule ? `<span class="matched-rule-badge" title="${getMessage('matchedRule')}: ${escapeHtml(req.matchedRule.name)}">📋 ${escapeHtml(req.matchedRule.name)}</span>` : ''}
       </div>
       <div class="request-meta">
