@@ -501,6 +501,8 @@ main {
 .method-PUT { background: #4285f4; color: white; }
 .method-DELETE { background: #ea4335; color: white; }
 .method-PATCH { background: #9334e6; color: white; }
+.method-OPTIONS { background: #00acc1; color: white; }
+.method-HEAD { background: #607d8b; color: white; }
 
 .request-url {
   font-size: 13px;
