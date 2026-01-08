@@ -8,15 +8,11 @@ updates:
     directory: "/"
     schedule:
       interval: "weekly"
-      day: "monday"
+      day: "tuesday"
       time: "09:00"
       timezone: "Asia/Shanghai"
     # Limit number of open pull requests for version updates
     open-pull-requests-limit: 10
-    # Add labels to pull requests
-    labels:
-      - "dependencies"
-      - "npm"
     # Group minor and patch updates together
     groups:
       dev-dependencies:
@@ -35,12 +31,8 @@ updates:
     directory: "/"
     schedule:
       interval: "weekly"
-      day: "monday"
+      day: "tuesday"
       time: "09:00"
       timezone: "Asia/Shanghai"
     # Limit number of open pull requests for version updates
     open-pull-requests-limit: 5
-    # Add labels to pull requests
-    labels:
-      - "dependencies"
-      - "github-actions"
